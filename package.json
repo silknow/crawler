@@ -1,0 +1,37 @@
+{
+  "name": "silknow-crawler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "eslint": "eslint .",
+    "lint": "npm run eslint",
+    "test": "npm run lint",
+    "precommit": "npm test",
+    "prepublishOnly": "npm test",
+    "start": "node ."
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "axios-retry": "^3.1.1",
+    "bluebird": "^3.5.1",
+    "camelcase": "^5.0.0",
+    "cheerio": "^1.0.0-rc.2",
+    "dateformat": "^3.0.3",
+    "debug": "^3.1.0",
+    "mkdirp": "^0.5.1",
+    "promise-queue": "^2.2.5",
+    "save": "^2.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^5.2.0",
+    "eslint-config-airbnb-base": "^13.0.0",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-plugin-import": "^2.13.0",
+    "eslint-plugin-prettier": "^2.6.2",
+    "husky": "^0.14.3",
+    "prettier": "^1.13.7"
+  }
+}
