@@ -1,6 +1,15 @@
 # crawler
 SILKNOW crawler that collects metadata records describing silk material from various museums.
 
+## Prerequisites
+- Node 8+
+
+## How to install
+You first need to install dependencies, by using npm:
+```
+npm install
+```
+
 ## How to run
 The crawler takes one paramater: the name of the museum to be crawled. For example:
 ```
