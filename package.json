@@ -1,8 +1,9 @@
 {
   "name": "silknow-crawler",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.0.1",
+  "description": "SILKNOW crawler that collects metadata records describing silk material from various museums",
   "main": "index.js",
+  "repository": "https://github.com/silknow/crawler",
   "scripts": {
     "eslint": "eslint .",
     "lint": "npm run eslint",
