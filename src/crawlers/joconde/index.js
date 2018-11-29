@@ -185,17 +185,18 @@ class JocondeCrawler extends BaseCrawler {
         .parent()
         .attr('href');
 
-      record.images.push(
-        new url.URL(imageUrl, 'http://www2.culture.gouv.fr/').href
-      );
+      record.images.push({
+        id: '',
+        url: new url.URL(imageUrl, 'http://www2.culture.gouv.fr/').href
+      });
     });
 
     // Download the images
-    for (const imageUrl of record.images) {
+    for (const image of record.images) {
       try {
-        await this.downloadImage(imageUrl);
+        await this.downloadImage(image.url);
       } catch (e) {
-        debug('Could not download image %s: %s', imageUrl, e.message);
+        debug('Could not download image %s: %s', image.url, e.message);
       }
     }
 
