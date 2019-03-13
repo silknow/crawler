@@ -89,15 +89,15 @@ class MetMuseumCrawler extends BaseCrawler {
 
     const $ = cheerio.load(response.data);
 
-    const items = [];
+    const fields= [];
     // properties to label-value array
     Object.keys(record).forEach(label => {
       const value = record[label];
-      items.push({ label, value });
+      fields.push({ label, value });
       delete record[label];
     });
 
-    // Details items from the web page
+    // Details fields from the web page
     $('.artwork__tombstone--row').each((i, elem) => {
       const label = $(elem)
         .find('.artwork__tombstone--label')
@@ -109,12 +109,12 @@ class MetMuseumCrawler extends BaseCrawler {
         .first()
         .text();
 
-      items.push({
+      fields.push({
         label,
         value
       });
     });
-    record.items = items;
+    record.fields = fields;
 
     // Provenance
     $('.component__accordions > .accordion').each((i, elem) => {
@@ -125,7 +125,7 @@ class MetMuseumCrawler extends BaseCrawler {
           .text()
           .trim() === 'Provenance'
       ) {
-        record.items.push({
+        record.fields.push({
           label: 'provenance',
           value: $(elem)
             .find('.accordion__content')
