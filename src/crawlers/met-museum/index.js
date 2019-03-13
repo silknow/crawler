@@ -89,8 +89,15 @@ class MetMuseumCrawler extends BaseCrawler {
 
     const $ = cheerio.load(response.data);
 
-    // Details items
     const items = [];
+    // properties to label-value array
+    Object.keys(record).forEach(label => {
+      const value = record[label];
+      items.push({ label, value });
+      delete record[label];
+    });
+
+    // Details items from the web page
     $('.artwork__tombstone--row').each((i, elem) => {
       const label = $(elem)
         .find('.artwork__tombstone--label')
@@ -118,11 +125,14 @@ class MetMuseumCrawler extends BaseCrawler {
           .text()
           .trim() === 'Provenance'
       ) {
-        record.provenance = $(elem)
-          .find('.accordion__content')
-          .first()
-          .text()
-          .trim();
+        record.items.push({
+          label: 'provenance',
+          value: $(elem)
+            .find('.accordion__content')
+            .first()
+            .text()
+            .trim()
+        });
       }
     });
 
