@@ -196,6 +196,9 @@ class ImatexCrawler extends BaseCrawler {
 
     const record = {
       fields: [],
+      bibliographies: [],
+      expositions: [],
+      otherPieces: [],
       images: []
     };
 
@@ -215,6 +218,61 @@ class ImatexCrawler extends BaseCrawler {
       record.fields.push({
         label,
         value
+      });
+    });
+
+    // Bibliographies
+    $('#tr_entorn_taulaBiblio tr:not(.titols) td').each((i, td) => {
+      const value = $(td)
+        .text()
+        .trim();
+      if (value.length > 0) {
+        record.bibliographies.push(value);
+      }
+    });
+
+    // Expositions
+    $('#tr_entorn_taulaExpos tr:not(.titols) td').each((i, td) => {
+      const value = $(td)
+        .text()
+        .trim();
+      if (value.length > 0) {
+        record.expositions.push(value);
+      }
+    });
+
+    // Other pieces
+    $('#tr_entorn_taulaFitxes tr:not(.titols)').each((i, tr) => {
+      const $tds = $(tr).children('td');
+
+      const $image = $tds
+        .eq(0)
+        .find('img')
+        .first();
+      const imageId = $image
+        .attr('id')
+        .split('_')
+        .pop()
+        .padStart(10, '0');
+      const imageUrl = $image.attr('src').trim();
+
+      const registerNumber = $tds
+        .eq(1)
+        .text()
+        .trim();
+
+      const dimensions = $tds
+        .eq(2)
+        .text()
+        .trim();
+
+      record.otherPieces.push({
+        image: {
+          id: imageId,
+          url: new url.URL(imageUrl, 'http://imatex.cdmt.cat/_cat/').href
+        },
+        registerNumber,
+        dimensions
       });
     });
 
