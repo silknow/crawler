@@ -82,14 +82,15 @@ class MetMuseumCrawler extends BaseCrawler {
     debug('Downloading record %s', recordNumber);
     let response;
     try {
-      response = await axios.get(`https://www.metmuseum.org/${record.url}`);
+      response = await axios.get(`https://www.metmuseum.org${record.url}`);
     } catch (err) {
       return Promise.reject(err);
     }
 
     const $ = cheerio.load(response.data);
 
-    const fields= [];
+    const fields = [];
+
     // properties to label-value array
     Object.keys(record).forEach(label => {
       const value = record[label];
@@ -97,7 +98,26 @@ class MetMuseumCrawler extends BaseCrawler {
       delete record[label];
     });
 
-    // Details fields from the web page
+    // Resolve relative URLs
+    fields.forEach(field => {
+      switch (field.label) {
+        case 'image':
+        case 'regularImage':
+        case 'largeImage':
+          field.value = url.resolve(
+            'https://images.metmuseum.org/CRDImages/',
+            field.value
+          );
+          break;
+        case 'url':
+          field.value = url.resolve('https://www.metmuseum.org/', field.value);
+          break;
+        default:
+          break;
+      }
+    });
+
+    // Add details fields from the web page
     $('.artwork__tombstone--row').each((i, elem) => {
       const label = $(elem)
         .find('.artwork__tombstone--label')
@@ -114,7 +134,35 @@ class MetMuseumCrawler extends BaseCrawler {
         value
       });
     });
-    record.fields = fields;
+
+    // Image license
+    const license = $('.utility-menu__item-link-text')
+      .text()
+      .trim();
+    if (license.length > 0) {
+      fields.push({
+        label: 'Rights on images',
+        value: license
+      });
+    }
+
+    // Facets
+    $('.artwork__facets').each((i, elem) => {
+      const label = $(elem)
+        .find('label')
+        .first()
+        .text();
+
+      $(elem)
+        .find('a')
+        .each((j, link) => {
+          const value = $(link).text();
+          fields.push({
+            label,
+            value
+          });
+        });
+    });
 
     // Provenance
     $('.component__accordions > .accordion').each((i, elem) => {
@@ -125,7 +173,7 @@ class MetMuseumCrawler extends BaseCrawler {
           .text()
           .trim() === 'Provenance'
       ) {
-        record.fields.push({
+        fields.push({
           label: 'provenance',
           value: $(elem)
             .find('.accordion__content')
@@ -136,7 +184,79 @@ class MetMuseumCrawler extends BaseCrawler {
       }
     });
 
+    // Related objects
+    const relatedObjects = [];
+    $('.component__related-objects .card--collection').each((i, elem) => {
+      const relatedObjectFields = [];
+
+      // Title and URL
+      const $link = $(elem)
+        .find('.card__title a')
+        .first();
+      relatedObjectFields.push({
+        label: 'title',
+        value: $link.text()
+      });
+      relatedObjectFields.push({
+        label: 'url',
+        value: url.resolve('https://www.metmuseum.org/', $link.attr('href'))
+      });
+
+      // Image
+      const imageSrc = $(elem)
+        .find('.card__standard-image img')
+        .first()
+        .attr('data-src')
+        .replace(/\/CRDImages\/(.+)\/(.+)\//, '/CRDImages/$1/web-large/');
+      const imageUrl = url.resolve('https://www.metmuseum.org/', imageSrc);
+      relatedObjectFields.push({
+        label: 'image',
+        value: imageUrl
+      });
+
+      // Other fields
+      $(elem)
+        .find('.card__meta-item')
+        .each((j, item) => {
+          const label = $(item)
+            .find('.card__meta-label')
+            .first()
+            .text();
+          const value = $(item)
+            .find('.card__meta-data')
+            .first()
+            .text();
+          relatedObjectFields.push({
+            label,
+            value
+          });
+        });
+
+      relatedObjects.push({
+        fields: relatedObjectFields
+      });
+    });
+
+    fields.push({
+      label: 'Related objects',
+      value: relatedObjects
+    });
+
+    // Download related objects images
+    for (const object of relatedObjects) {
+      for (const field of object.fields) {
+        if (field.label === 'image') {
+          try {
+            await this.downloadImage(field.value);
+          } catch (e) {
+            debug('Could not download image %s: %s', field.value, e.message);
+          }
+        }
+      }
+    }
+
     // Save the record
+    record.fields = fields;
     return new Promise((resolve, reject) => {
       fs.writeFile(filePath, JSON.stringify(record), err => {
         if (err) reject(err);
