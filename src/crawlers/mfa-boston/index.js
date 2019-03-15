@@ -80,17 +80,18 @@ class MfaBostonCrawler extends BaseCrawler {
 
     // Download record
     debug('Downloading record %s', recordNumber);
+    const recordUrl = `https://www.mfa.org/collections/object/${recordNumber}`;
     let response;
     try {
-      response = await axios.get(
-        `https://www.mfa.org/collections/object/${recordNumber}`
-      );
+      response = await axios.get(recordUrl);
     } catch (err) {
       return Promise.reject(err);
     }
 
     const record = {
-      fields: {},
+      id: recordNumber,
+      url: recordUrl,
+      fields: [],
       images: []
     };
 
@@ -98,35 +99,47 @@ class MfaBostonCrawler extends BaseCrawler {
 
     // Item details (in first grid)
     const grid = $('.node-object .content .grid-6').first();
-    record.title = $(grid)
-      .find('h2')
-      .first()
-      .text()
-      .trim();
-    record.subtitle = $(grid)
-      .find('h2')
-      .next('h3')
-      .text()
-      .trim();
-    record.teaser = $(grid)
-      .find('h2')
-      .nextAll('hr')
-      .first()
-      .prev('p')
-      .text()
-      .trim();
+    record.fields.push({
+      label: 'title',
+      value: $(grid)
+        .find('h2')
+        .first()
+        .text()
+        .trim()
+    });
+    record.fields.push({
+      label: 'subtitle',
+      value: $(grid)
+        .find('h2')
+        .next('h3')
+        .text()
+        .trim()
+    });
+    record.fields.push({
+      label: 'teaser',
+      value: $(grid)
+        .find('h2')
+        .nextAll('hr')
+        .first()
+        .prev('p')
+        .text()
+        .trim()
+    });
 
     // Description (in second grid)
-    record.description = $('.node-object .content .grid-6 .body')
-      .first()
-      .text()
-      .trim();
+    record.fields.push({
+      label: 'description',
+      value: $('.node-object .content .grid-6 .body')
+        .first()
+        .text()
+        .trim()
+    });
 
     // Fields (in both grids)
     $('.node-object .content .grid-6')
       .find('h4')
       .each((i, elem) => {
-        const label = $(elem)
+        const text = $(elem)
           .text()
           .trim();
 
@@ -135,8 +148,11 @@ class MfaBostonCrawler extends BaseCrawler {
           .text()
           .trim();
 
-        const fieldKey = camelCase(label);
-        record.fields[fieldKey] = value;
+        const label = camelCase(text);
+        record.fields.push({
+          label,
+          value
+        });
       });
 
     // Images (in main slider)
@@ -144,15 +160,18 @@ class MfaBostonCrawler extends BaseCrawler {
       '.node-object .content .slider .slideshow > .carousel-content .object img'
     ).each((i, elem) => {
       const imageUrl = $(elem).attr('src');
-      record.images.push(imageUrl);
+      record.images.push({
+        id: '',
+        url: imageUrl
+      });
     });
 
     // Download the images
-    for (const imageUrl of record.images) {
+    for (const image of record.images) {
       try {
-        await this.downloadImage(imageUrl);
+        await this.downloadImage(image.url);
       } catch (e) {
-        debug('Could not download image %s: %s', imageUrl, e.message);
+        debug('Could not download image %s: %s', image.url, e.message);
       }
     }
 
