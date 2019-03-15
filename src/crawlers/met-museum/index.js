@@ -54,8 +54,8 @@ class MetMuseumCrawler extends BaseCrawler {
     return Promise.resolve();
   }
 
-  async downloadRecord(record) {
-    const recordNumber = record.accessionNumber;
+  async downloadRecord(recordData) {
+    const recordNumber = recordData.accessionNumber;
     const fileName = `${recordNumber}.json`;
     const filePath = path.resolve(
       process.cwd(),
@@ -80,26 +80,44 @@ class MetMuseumCrawler extends BaseCrawler {
 
     // Download record
     debug('Downloading record %s', recordNumber);
+    const recordUrl = url.resolve(
+      'https://www.metmuseum.org/',
+      url.parse(recordData.url).pathname
+    );
     let response;
     try {
-      response = await axios.get(`https://www.metmuseum.org${record.url}`);
+      response = await axios.get(recordUrl);
     } catch (err) {
       return Promise.reject(err);
     }
 
     const $ = cheerio.load(response.data);
 
-    const fields = [];
+    const record = {
+      id: recordNumber,
+      url: recordUrl,
+      fields: [],
+      relatedObjects: []
+    };
 
-    // properties to label-value array
-    Object.keys(record).forEach(label => {
-      const value = record[label];
-      fields.push({ label, value });
-      delete record[label];
+    // Get the actual collection ID (different from the accession number)
+    const idMatch = recordUrl.match(/\/collection\/search\/([0-9]+)/);
+    if (idMatch) {
+      const id = idMatch[1];
+      record.id = id;
+    }
+
+    // Properties to label-value array
+    Object.keys(recordData).forEach(label => {
+      const value = recordData[label];
+      record.fields.push({
+        label,
+        value
+      });
     });
 
     // Resolve relative URLs
-    fields.forEach(field => {
+    record.fields.forEach(field => {
       switch (field.label) {
         case 'image':
         case 'regularImage':
@@ -129,7 +147,7 @@ class MetMuseumCrawler extends BaseCrawler {
         .first()
         .text();
 
-      fields.push({
+      record.fields.push({
         label,
         value
       });
@@ -140,13 +158,14 @@ class MetMuseumCrawler extends BaseCrawler {
       .text()
       .trim();
     if (license.length > 0) {
-      fields.push({
+      record.fields.push({
         label: 'Rights on images',
         value: license
       });
     }
 
     // Facets
+    const facets = {};
     $('.artwork__facets').each((i, elem) => {
       const label = $(elem)
         .find('label')
@@ -157,11 +176,18 @@ class MetMuseumCrawler extends BaseCrawler {
         .find('a')
         .each((j, link) => {
           const value = $(link).text();
-          fields.push({
-            label,
-            value
-          });
+          if (!facets[label]) {
+            facets[label] = [];
+          }
+          facets[label].push(value);
         });
+    });
+    Object.keys(facets).forEach(label => {
+      const values = facets[label];
+      record.fields.push({
+        label,
+        values
+      });
     });
 
     // Provenance
@@ -173,7 +199,7 @@ class MetMuseumCrawler extends BaseCrawler {
           .text()
           .trim() === 'Provenance'
       ) {
-        fields.push({
+        record.fields.push({
           label: 'provenance',
           value: $(elem)
             .find('.accordion__content')
@@ -185,22 +211,34 @@ class MetMuseumCrawler extends BaseCrawler {
     });
 
     // Related objects
-    const relatedObjects = [];
     $('.component__related-objects .card--collection').each((i, elem) => {
-      const relatedObjectFields = [];
+      const relatedObject = {
+        id: '',
+        url: '',
+        fields: []
+      };
 
       // Title and URL
       const $link = $(elem)
         .find('.card__title a')
         .first();
-      relatedObjectFields.push({
+      relatedObject.fields.push({
         label: 'title',
         value: $link.text()
       });
-      relatedObjectFields.push({
-        label: 'url',
-        value: url.resolve('https://www.metmuseum.org/', $link.attr('href'))
-      });
+      relatedObject.url = url.resolve(
+        'https://www.metmuseum.org/',
+        $link.attr('href')
+      );
+
+      // Collection ID
+      const relatedIdMatch = relatedObject.url.match(
+        /\/collection\/search\/([0-9]+)/
+      );
+      if (relatedIdMatch) {
+        const id = relatedIdMatch[1];
+        relatedObject.id = id;
+      }
 
       // Image
       const imageSrc = $(elem)
@@ -209,7 +247,7 @@ class MetMuseumCrawler extends BaseCrawler {
         .attr('data-src')
         .replace(/\/CRDImages\/(.+)\/(.+)\//, '/CRDImages/$1/web-large/');
       const imageUrl = url.resolve('https://www.metmuseum.org/', imageSrc);
-      relatedObjectFields.push({
+      relatedObject.fields.push({
         label: 'image',
         value: imageUrl
       });
@@ -226,24 +264,17 @@ class MetMuseumCrawler extends BaseCrawler {
             .find('.card__meta-data')
             .first()
             .text();
-          relatedObjectFields.push({
+          relatedObject.fields.push({
             label,
             value
           });
         });
 
-      relatedObjects.push({
-        fields: relatedObjectFields
-      });
-    });
-
-    fields.push({
-      label: 'Related objects',
-      value: relatedObjects
+      record.relatedObjects.push(relatedObject);
     });
 
     // Download related objects images
-    for (const object of relatedObjects) {
+    for (const object of record.relatedObjects) {
       for (const field of object.fields) {
         if (field.label === 'image') {
           try {
@@ -256,7 +287,6 @@ class MetMuseumCrawler extends BaseCrawler {
     }
 
     // Save the record
-    record.fields = fields;
     return new Promise((resolve, reject) => {
       fs.writeFile(filePath, JSON.stringify(record), err => {
         if (err) reject(err);
