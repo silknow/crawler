@@ -80,20 +80,24 @@ class LesArtsDecoratifsCrawler extends BaseCrawler {
 
     // Download record
     debug('Downloading record %s', recordNumber);
+    const recordUrl = `http://collections.lesartsdecoratifs.fr/print/${recordNumber}`;
     let response;
     try {
-      response = await axios.get(
-        `http://collections.lesartsdecoratifs.fr/print/${recordNumber}`
-      );
+      response = await axios.get(recordUrl);
     } catch (err) {
       return Promise.reject(err);
     }
 
-    const recordData = [];
-    const images = [];
+    const record = {
+      id: recordNumber,
+      url: recordUrl,
+      fields: [],
+      images: []
+    };
 
     const $ = cheerio.load(response.data);
 
+    // Fields
     $('.content .field').each((i, elem) => {
       const fieldType =
         $(elem)
@@ -107,7 +111,8 @@ class LesArtsDecoratifsCrawler extends BaseCrawler {
       const fieldLabel = $(elem)
         .find('.field-label')
         .first()
-        .text();
+        .text()
+        .trim();
 
       const fieldItems = [];
       $(elem)
@@ -126,36 +131,43 @@ class LesArtsDecoratifsCrawler extends BaseCrawler {
               .children('img')
               .each((k, img) => {
                 const imageUrl = $(img).attr('src');
-                images.push(imageUrl);
+                record.images.push({
+                  id: '',
+                  url: imageUrl
+                });
                 fieldItems.push(imageUrl);
               });
           }
 
           if (fieldItems.length === 0) {
+            // Replace <br> with newlines
+            $(item)
+              .find('br')
+              .replaceWith('\n');
             fieldItems.push($(item).text());
           }
         })
         .get();
 
-      recordData.push({
+      record.fields.push({
         type: fieldType,
         label: fieldLabel.length > 0 ? fieldLabel : undefined,
-        items: fieldItems
+        values: fieldItems
       });
     });
 
     // Download the images
-    for (const imageUrl of images) {
+    for (const image of record.images) {
       try {
-        await this.downloadImage(imageUrl);
+        await this.downloadImage(image.url);
       } catch (e) {
-        debug('Could not download image %s: %s', imageUrl, e.message);
+        debug('Could not download image %s: %s', image.url, e.message);
       }
     }
 
     // Save the record
     return new Promise((resolve, reject) => {
-      fs.writeFile(filePath, JSON.stringify(recordData), err => {
+      fs.writeFile(filePath, JSON.stringify(record), err => {
         if (err) reject(err);
         else resolve();
       });
