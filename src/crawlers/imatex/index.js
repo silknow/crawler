@@ -196,7 +196,7 @@ class ImatexCrawler extends BaseCrawler {
 
     const record = {
       fields: [],
-      bibliographies: [],
+      bibliography: [],
       expositions: [],
       otherPieces: [],
       images: []
@@ -221,13 +221,13 @@ class ImatexCrawler extends BaseCrawler {
       });
     });
 
-    // Bibliographies
+    // Bibliography
     $('#tr_entorn_taulaBiblio tr:not(.titols) td').each((i, td) => {
       const value = $(td)
         .text()
         .trim();
       if (value.length > 0) {
-        record.bibliographies.push(value);
+        record.bibliography.push(value);
       }
     });
 
