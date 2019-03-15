@@ -32,7 +32,9 @@ class MtmadCrawler extends BaseCrawler {
     try {
       response = await axios.get(
         'http://www.mtmad.fr/floracci/jsp/opac/opac_index.jsp?action=opac_search_bien_simple&only_main=true&lang=fre-FR',
-        { withCredentials: true }
+        {
+          withCredentials: true
+        }
       );
     } catch (err) {
       return Promise.reject(err);
@@ -159,42 +161,57 @@ class MtmadCrawler extends BaseCrawler {
 
     // Download record
     debug('Downloading record %s', recordNumber);
+    const recordUrl = `http://www.mtmad.fr/floracci/jsp/opac/opac_index.jsp?action=view_notice&recordId=musee:MUS_BIEN:${recordNumber}&only_main=true&lang=fre-FR`;
     let response;
     try {
-      response = await axios.get(
-        `http://www.mtmad.fr/floracci/jsp/opac/opac_index.jsp?action=view_notice&recordId=musee:MUS_BIEN:${recordNumber}&only_main=true&lang=fre-FR`,
-        {
-          headers: this.request.headers,
-          withCredentials: true
-        }
-      );
+      response = await axios.get(recordUrl, {
+        headers: this.request.headers,
+        withCredentials: true
+      });
     } catch (err) {
       return Promise.reject(err);
     }
 
     const record = {
-      details: [],
-      description: '',
-      bibliography: [],
+      id: recordNumber,
+      url: recordUrl,
+      fields: [],
       images: []
     };
 
     const $ = cheerio.load(response.data);
 
+    // Title
+    record.fields.push({
+      label: 'title',
+      value: $('.sp_Titre')
+        .first()
+        .text()
+        .trim()
+    });
+
     // Details
+    const details = [];
     $('.sp_Detail .sp_Enum').each((i, elem) => {
-      record.details.push(
+      details.push(
         $(elem)
           .text()
           .trim()
       );
     });
+    record.fields.push({
+      label: 'details',
+      values: details
+    });
 
     // Description
-    record.description = $('.sp_Description .sp_Enum')
-      .first()
-      .text()
-      .trim();
+    record.fields.push({
+      label: 'description',
+      value: $('.sp_Description .sp_Enum')
+        .first()
+        .text()
+        .trim()
+    });
 
     // Bibliography
     $('.sp_Bibliography .sp_Enum').each((i, elem) => {
@@ -204,13 +221,18 @@ class MtmadCrawler extends BaseCrawler {
         .text()
         .trim();
 
-      const value = $(elem)
-        .contents()
-        .filter((j, node) => node.type === 'text')
-        .text()
-        .trim();
+      const value =
+        $(elem)
+          .children(':not(.sp_CatBib)')
+          .text()
+          .trim() +
+        $(elem)
+          .contents()
+          .filter((j, node) => node.type === 'text')
+          .text()
+          .trim();
 
-      record.bibliography.push({
+      record.fields.push({
         label,
         value
       });
@@ -221,6 +243,7 @@ class MtmadCrawler extends BaseCrawler {
       const imageUrl = $(elem).attr('src');
       const imageTitle = $(elem).attr('title');
       record.images.push({
+        id: '',
         url: imageUrl,
         title: imageTitle
       });
