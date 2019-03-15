@@ -52,7 +52,7 @@ class JocondeCrawler extends BaseCrawler {
     );
     this.totalPages = Math.ceil(resultsCount / this.limit);
 
-    const records = [];
+    const recordsData = [];
 
     $('#theme table[valign="TOP"]').each((i, elem) => {
       let recordNumber = '';
@@ -79,24 +79,24 @@ class JocondeCrawler extends BaseCrawler {
         });
 
       if (recordNumber.length > 0) {
-        const recordUrl = new url.URL(
+        const recordUrl = url.resolve(
+          'http://www2.culture.gouv.fr/',
           $(elem)
             .find('tr:last-child a')
             .last()
-            .attr('href'),
-          'http://www2.culture.gouv.fr/'
-        ).href;
+            .attr('href')
+        );
 
-        records.push({
+        recordsData.push({
           id: recordNumber,
           url: recordUrl
         });
       }
     });
 
-    for (const record of records) {
+    for (const recordData of recordsData) {
       try {
-        await this.downloadRecord(record.id, record.url);
+        await this.downloadRecord(recordData.id, recordData.url);
       } catch (e) {
         debug('Could not download record:', e);
       }
@@ -142,6 +142,7 @@ class JocondeCrawler extends BaseCrawler {
     }
 
     const record = {
+      id: recordNumber,
       fields: [],
       images: []
     };
@@ -187,7 +188,7 @@ class JocondeCrawler extends BaseCrawler {
 
       record.images.push({
         id: '',
-        url: new url.URL(imageUrl, 'http://www2.culture.gouv.fr/').href
+        url: url.resolve('http://www2.culture.gouv.fr/', imageUrl)
       });
     });
 
