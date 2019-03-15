@@ -26,5 +26,7 @@ node . mfa-boston
 * `mtmad` - Musée des Tissus
 * `risd-museum` - Rhode Island School of Design Museum
 
+Crawled JSON structure of each museum can be found [here](https://github.com/silknow/crawler/wiki/Crawlers-JSON-Structure)
+
 ## Development
 Add the environment variable `DEBUG=silknow:*` to also output the debug logs.
