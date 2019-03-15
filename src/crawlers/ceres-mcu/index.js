@@ -170,6 +170,7 @@ class CeresMcuCrawler extends BaseCrawler {
     }
 
     const record = {
+      id: recordNumber,
       fields: [],
       images: []
     };
@@ -204,6 +205,7 @@ class CeresMcuCrawler extends BaseCrawler {
         .trim();
 
       record.images.push({
+        id: recordInfo.id,
         url: `http://ceres.mcu.es/pages/Viewer?accion=42&AMuseo=${encodeURIComponent(
           recordInfo.museum
         )}&Ninv=${encodeURIComponent(recordInfo.id)}&txt_id_imagen=1`,
