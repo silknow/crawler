@@ -181,10 +181,11 @@ class ImatexCrawler extends BaseCrawler {
 
     // Download record
     debug('Downloading record %s', recordNumber);
+    const recordUrl = `http://imatex.cdmt.cat/_cat/fitxa_fitxa.aspx?m=n&num_id=${recordNumber}`;
     let response;
     try {
       response = await axios.get(
-        `http://imatex.cdmt.cat/_cat/fitxa_fitxa.aspx?m=n&num_id=${recordNumber}&t=${new Date().getMilliseconds()}`,
+        `${recordUrl}&t=${new Date().getMilliseconds()}`,
         {
           headers: this.request.headers,
           withCredentials: true
@@ -195,6 +196,8 @@ class ImatexCrawler extends BaseCrawler {
     }
 
     const record = {
+      id: recordNumber,
+      url: recordUrl,
       fields: [],
       bibliography: [],
       expositions: [],
@@ -269,7 +272,7 @@ class ImatexCrawler extends BaseCrawler {
       record.otherPieces.push({
         image: {
           id: imageId,
-          url: new url.URL(imageUrl, 'http://imatex.cdmt.cat/_cat/').href
+          url: url.resolve('http://imatex.cdmt.cat/_cat/', imageUrl)
         },
         registerNumber,
         dimensions
@@ -299,7 +302,10 @@ class ImatexCrawler extends BaseCrawler {
       if (imageUrl.length > 0) {
         record.images.push({
           id: imageId,
-          url: new url.URL(imageUrl, 'http://imatex.cdmt.cat/_cat/').href
+          url: url.resolve(
+            'http://imatex.cdmt.cat/_cat/',
+            url.parse(imageUrl).pathname
+          )
         });
       }
     });
