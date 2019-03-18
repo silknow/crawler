@@ -11,7 +11,14 @@ Object.values(crawlers).forEach(Crawler => {
   }
 });
 
-if (crawler) {
+if (!crawler) {
+  console.log(
+    `No crawler selected. Available: ${Object.values(crawlers)
+      .map(c => c.id)
+      .join(', ')}`
+  );
+} else {
+  console.log(`Running crawler "${crawler.constructor.id}"`);
   crawler
     .start()
     .then(() => {
