@@ -19,42 +19,49 @@ class RisdMuseumCrawler extends BaseCrawler {
     });
 
     this.request.url =
-      'https://risdmuseum.org/art_design/objects/tags/medium/silk';
-    this.paging.offset = 'first';
-    this.limit = 99;
+      'https://risdmuseum.org/art-design/collection?search_api_fulltext=&op=&field_type=64';
+    this.paging.page = 'page';
+    this.limit = 24;
   }
 
   async onSearchResult(result) {
     const $ = cheerio.load(result);
 
-    if ($('.paginator .show_more').length > 0) {
-      this.totalPages += 1;
-    }
+    const lastPageUrl = url.parse(
+      $('.view-collection .pager__item--last a').attr('href'),
+      true
+    );
+    this.totalPages = lastPageUrl.query.page;
 
     const records = [];
-    $('.search-result .search-result-info').each((i, elem) => {
-      const recordUrl = $(elem).attr('data-href');
-      const recordNumber = parseInt(
-        path.basename(url.parse(recordUrl).pathname),
-        10
+    $('.view-collection .node--type-collection-object').each((i, elem) => {
+      const recordNumber = $(elem).attr('data-history-node-id');
+      const recordUrl = url.resolve(
+        'https://risdmuseum.org/',
+        $(elem).attr('about')
       );
-      records.push(recordNumber);
+      records.push({
+        recordNumber,
+        recordUrl
+      });
     });
 
-    for (const record of records) {
+    for (const { recordNumber, recordUrl } of records) {
       try {
-        await this.downloadRecord(record);
+        await this.downloadRecord(recordNumber, recordUrl);
       } catch (e) {
         debug('Could not download record:', e);
       }
     }
 
-    this.currentOffset += $('.search-result').length;
+    this.currentOffset += $(
+      '.view-collection .node--type-collection-object'
+    ).length;
 
     return Promise.resolve();
   }
 
-  async downloadRecord(recordNumber) {
+  async downloadRecord(recordNumber, recordUrl) {
     const fileName = `${recordNumber}.json`;
     const filePath = path.resolve(
       process.cwd(),
@@ -81,136 +88,199 @@ class RisdMuseumCrawler extends BaseCrawler {
     debug('Downloading record %s', recordNumber);
     let response;
     try {
-      response = await axios.get(
-        `https://risdmuseum.org/art_design/objects/${recordNumber}`
-      );
+      response = await axios.get(recordUrl);
     } catch (err) {
       return Promise.reject(err);
     }
 
     const record = {
+      id: recordNumber,
+      url: recordUrl,
       fields: [],
-      exhibitions: [],
       publications: [],
+      exhibitions: [],
       images: []
     };
 
     const $ = cheerio.load(response.data);
 
-    // Item details
-    record.view = $('.content-object .view').length > 0;
-    record.title = $('.content-object .title')
-      .first()
-      .text()
-      .trim();
-    record.tombstone = $('.content-object .tombstone')
-      .first()
-      .text()
-      .trim();
+    // Check if the item is made of silk
+    const medium = $('.field--name-field-medium-technique').text();
+    if (!medium.toLowerCase().includes('silk')) {
+      // Not silk, skip this record
+      debug(
+        'Skipping record %s because it is not silk (medium: %s)',
+        recordNumber,
+        medium
+      );
+      return Promise.resolve();
+    }
 
     // Fields
-    $('.content-object .sidebar .sidebar-block h1').each((i, h1) => {
-      const label = $(h1)
+    $('.content__section--description .object__info').each((i, item) => {
+      const label = $(item)
+        .find('.object__accordion-title, .object__accordion-subtitle')
+        .first()
         .text()
         .trim();
-      const values = [];
 
-      $(h1)
-        .next('.object-details')
-        .find('a')
-        .each((j, a) => {
-          values.push(
-            $(a)
-              .text()
-              .trim()
-          );
+      if ($(item).find('.term__list').length > 0) {
+        const values = [];
+        const terms = $(item).find('.term__item');
+
+        terms.each((j, term) => {
+          const value = $(term)
+            .find('.objects__link')
+            .first()
+            .text()
+            .trim();
+          values.push(value);
         });
 
-      record.fields.push({
-        label,
-        values
-      });
+        record.fields.push({
+          label,
+          values
+        });
+      } else {
+        const value = $(item)
+          .find('.object__info--content')
+          .first()
+          .text()
+          .trim();
+
+        record.fields.push({
+          label,
+          value
+        });
+      }
     });
 
-    $('.content-object .related-exhibition-item').each((i, item) => {
-      const itemTitle = $(item)
-        .find('.related-exhibition-item-title')
-        .first()
-        .text()
-        .trim();
-      const itemDate = $(item)
-        .find('.related-exhibition-item-date')
-        .first()
-        .text()
-        .trim();
-      const itemText = $(item)
-        .find('.related-exhibition-item-text')
-        .first()
-        .text()
-        .trim();
+    // Additional fields (Dimensions, Type, Credit, Object Number, ...)
+    $('.content__section--description .ckeditor-accordion dt').each((i, dt) => {
+      const $dd = $(dt)
+        .next('dd')
+        .first();
+      // Ignore .object__info items, because they're already scrapped above
+      if ($dd.find('.object__info').length === 0) {
+        const label = $(dt)
+          .find('.object__accordion-title')
+          .first()
+          .text()
+          .trim();
 
-      record.exhibitions.push({
-        title: itemTitle,
-        date: itemDate,
-        text: itemText
-      });
-    });
-
-    $('.content-object .related-publication-item').each((i, item) => {
-      const itemTitle = $(item)
-        .find('.related-publication-item-title')
-        .first()
-        .text()
-        .trim();
-      const itemSubtitle = $(item)
-        .find('.related-publication-item-subtitle')
-        .first()
-        .text()
-        .trim();
-      const itemText = $(item)
-        .find('.related-publication-item-text')
-        .first()
-        .text()
-        .trim();
-      const itemImage = $(item)
-        .find('.related-publication-item-image img')
-        .first()
-        .attr('src');
-      const itemDetails = [];
-
-      $(item)
-        .find('.related-publication-item-details h2')
-        .each((j, h2) => {
-          const label = $(h2)
+        if ($dd.find('.field').length > 0) {
+          const value = $dd
+            .find('.field')
+            .first()
             .text()
             .trim();
-          const value = $(h2)
-            .next('span')
-            .text()
-            .trim();
-          itemDetails.push({
+
+          record.fields.push({
             label,
             value
           });
-        });
+        } else if ($dd.find('.term__list').length > 0) {
+          const values = [];
+          const terms = $dd.find('.term__item');
 
+          terms.each((j, term) => {
+            const value = $(term)
+              .find('.objects__link')
+              .first()
+              .text()
+              .trim();
+            values.push(value);
+          });
+
+          record.fields.push({
+            label,
+            values
+          });
+        }
+      }
+    });
+
+    // Publications
+    $(
+      '.content__section--projects-publications .view-publications article'
+    ).each((i, article) => {
+      const articleUrl = url.resolve(
+        'https://risdmuseum.org/',
+        $(article).attr('about')
+      );
+      const articleTitle = $(article)
+        .find('.teaser__title')
+        .first()
+        .text()
+        .trim();
+      const articleSubtitle = $(article)
+        .find('.field--subtitle')
+        .first()
+        .text()
+        .trim();
       record.publications.push({
-        title: itemTitle,
-        subtitle: itemSubtitle,
-        text: itemText,
-        image: new url.URL(itemImage, 'https://risdmuseum.org/').href,
-        details: itemDetails
+        url: articleUrl,
+        title: articleTitle,
+        subtitle: articleSubtitle
       });
     });
 
+    // Exhibitions
+    $('.content__section--exhibition-history .view-exhibitions article').each(
+      (i, article) => {
+        const articleUrl = url.resolve(
+          'https://risdmuseum.org/',
+          $(article).attr('about')
+        );
+        const articleTitle = $(article)
+          .find('.teaser__title')
+          .first()
+          .text()
+          .trim();
+        const articleDate = $(article)
+          .find('.field--date')
+          .first()
+          .text()
+          .trim();
+        const articleBlurb = $(article)
+          .find('.views-field-field-blurb')
+          .first()
+          .text()
+          .trim();
+        record.exhibitions.push({
+          url: articleUrl,
+          title: articleTitle,
+          date: articleDate,
+          blurb: articleBlurb
+        });
+      }
+    );
+
+    // Use
+    record.fields.push({
+      label: 'Use',
+      value: $('.content__section--use .node__content__section__info')
+        .first()
+        .text()
+        .trim()
+    });
+
+    // Feedback
+    record.fields.push({
+      label: 'Use',
+      value: $('.content__section--feedback .node__content__section__info')
+        .first()
+        .text()
+        .trim()
+    });
+
     // Images
-    $('#slideshow img').each((i, elem) => {
-      const imageUrl = $(elem).attr('data-src');
-      const imageCaption = $(elem).attr('data-caption');
+    $('.content__section--image .carousel-item').each((i, elem) => {
+      const imageUrl = $(elem).attr('data-full-url');
 
       record.images.push({
-        url: new url.URL(imageUrl, 'https://risdmuseum.org/').href,
-        caption: imageCaption
+        id: '',
+        url: new url.URL(imageUrl, 'https://risdmuseum.org/').href
       });
     });
 
