@@ -27,11 +27,11 @@ class RisdMuseumCrawler extends BaseCrawler {
   async onSearchResult(result) {
     const $ = cheerio.load(result);
 
-    const lastPageUrl = url.parse(
-      $('.view-collection .pager__item--last a').attr('href'),
-      true
-    );
-    this.totalPages = lastPageUrl.query.page;
+    const $lastPage = $('.view-collection .pager__item--last a');
+    if ($lastPage.length > 0) {
+      const lastPageUrl = url.parse($lastPage.attr('href'), true);
+      this.totalPages = lastPageUrl.query.page;
+    }
 
     const records = [];
     $('.view-collection .node--type-collection-object').each((i, elem) => {
