@@ -137,7 +137,7 @@ class MfaBostonCrawler extends BaseCrawler {
 
     // Fields (in both grids)
     $('.node-object .content .grid-6')
-      .find('h4')
+      .find('h3, h4')
       .each((i, elem) => {
         const text = $(elem)
           .text()
