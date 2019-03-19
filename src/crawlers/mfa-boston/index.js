@@ -27,13 +27,15 @@ class MfaBostonCrawler extends BaseCrawler {
   async onSearchResult(result) {
     const $ = cheerio.load(result);
 
-    this.totalPages = parseInt(
-      $('.pager-last')
-        .first()
-        .text()
-        .trim(),
-      10
-    );
+    if ($('.pager-last').length > 0) {
+      this.totalPages = parseInt(
+        $('.pager-last')
+          .first()
+          .text()
+          .trim(),
+        10
+      );
+    }
 
     const records = [];
     $('.view-id-search_objects .views-row > a').each((i, elem) => {
