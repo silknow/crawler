@@ -196,6 +196,9 @@ class MtmadCrawler extends BaseCrawler {
       details.push(
         $(elem)
           .text()
+          .replace(/\t/g, '') // Remove tabs
+          .replace(/\n+/g, ' ') // Remove newlines
+          .replace(/\s{2,}/g, ' ') // Remove extra spaces
           .trim()
       );
     });
@@ -205,6 +208,11 @@ class MtmadCrawler extends BaseCrawler {
     });
 
     // Description
+    // Convert <br> tags into newlines for the description
+    $('.sp_Description .sp_Enum')
+      .first()
+      .find('br')
+      .replaceWith('\n');
     record.fields.push({
       label: 'description',
       value: $('.sp_Description .sp_Enum')
