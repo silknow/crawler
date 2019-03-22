@@ -1,23 +1,22 @@
+const crawlers = require('./crawlers');
+
 process.on('unhandledRejection', err => {
   throw err;
 });
 
-const crawlers = require('./crawlers');
+const Crawler = Object.values(crawlers)
+  .filter(c => process.argv[2] === c.id)
+  .pop();
 
-let crawler;
-Object.values(crawlers).forEach(Crawler => {
-  if (process.argv[2] === Crawler.id) {
-    crawler = new Crawler();
-  }
-});
-
-if (!crawler) {
+if (!Crawler) {
   console.log(
-    `No crawler selected. Available: ${Object.values(crawlers)
+    `No crawler selected. Crawlers available: ${Object.values(crawlers)
       .map(c => c.id)
       .join(', ')}`
   );
 } else {
+  const crawler = new Crawler();
+
   console.log(`Running crawler "${crawler.constructor.id}"`);
   crawler
     .start()
