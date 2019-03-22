@@ -1,6 +1,10 @@
 const debug = require('debug')('silknow:crawlers:base');
 const axios = require('axios');
 const axiosRetry = require('axios-retry');
+const fs = require('fs');
+const path = require('path');
+
+const Utils = require('../helpers/utils');
 
 class BaseCrawler {
   constructor() {
@@ -76,6 +80,28 @@ class BaseCrawler {
     }
 
     return this.downloadNextPage();
+  }
+
+  async downloadFile(fileUrl, fileName) {
+    fileName = fileName || path.basename(fileUrl);
+
+    const filePath = path.resolve(
+      process.cwd(),
+      'data',
+      this.constructor.id,
+      'files',
+      fileName
+    );
+
+    // Check if file already exists
+    if (fs.existsSync(filePath)) {
+      debug('Skipping existing file %s', fileUrl);
+      return Promise.resolve();
+    }
+
+    debug('Downloading file %s as %s', fileUrl, fileName);
+
+    return Utils.downloadFile(fileUrl, filePath);
   }
 }
 

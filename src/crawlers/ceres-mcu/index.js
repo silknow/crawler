@@ -233,7 +233,7 @@ class CeresMcuCrawler extends BaseCrawler {
     // Download the images
     for (const [index, image] of record.images.entries()) {
       try {
-        await this.downloadImage(
+        await this.downloadFile(
           image.url,
           `${sanitizedRecordNumber}_${index}.jpg`
         );
@@ -249,26 +249,6 @@ class CeresMcuCrawler extends BaseCrawler {
         else resolve();
       });
     });
-  }
-
-  async downloadImage(imageUrl, fileName) {
-    const filePath = path.resolve(
-      process.cwd(),
-      'data',
-      CeresMcuCrawler.id,
-      'files',
-      fileName
-    );
-
-    // Check if file already exists
-    if (fs.existsSync(filePath)) {
-      debug('Skipping existing image %s', imageUrl);
-      return Promise.resolve();
-    }
-
-    debug('Downloading image %s', imageUrl);
-
-    return Utils.downloadFile(imageUrl, filePath);
   }
 }
 

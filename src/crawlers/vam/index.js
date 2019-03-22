@@ -3,6 +3,7 @@ const axios = require('axios');
 const axiosRetry = require('axios-retry');
 const fs = require('fs');
 const path = require('path');
+const url = require('url');
 
 const BaseCrawler = require('../base');
 const Utils = require('../../helpers/utils');
@@ -78,11 +79,15 @@ class VamCrawler extends BaseCrawler {
 
     // Download the images
     for (const image of response.data[0].fields.image_set) {
-      const imagePath = image.fields.local;
+      const imageUrl = url.resolve(
+        'http://media.vam.ac.uk/media/thira/',
+        image.fields.local
+      );
+      const imageId = image.fields.image_id;
       try {
-        await this.downloadImage(imagePath);
+        await this.downloadFile(imageUrl, `${imageId}.jpg`);
       } catch (e) {
-        debug('Could not download image %s: %s', imagePath, e.message);
+        debug('Could not download image %s: %s', image.url, e.message);
       }
     }
 
@@ -93,27 +98,6 @@ class VamCrawler extends BaseCrawler {
         else resolve();
       });
     });
-  }
-
-  async downloadImage(imagePath) {
-    const url = `http://media.vam.ac.uk/media/thira/${imagePath}`;
-    const filePath = path.resolve(
-      process.cwd(),
-      'data',
-      VamCrawler.id,
-      'files',
-      imagePath
-    );
-
-    // Check if file already exists
-    if (fs.existsSync(filePath)) {
-      debug('Skipping existing image %s', url);
-      return Promise.resolve();
-    }
-
-    debug('Downloading image %s', url);
-
-    return Utils.downloadFile(url, filePath);
   }
 }
 

@@ -263,7 +263,7 @@ class MtmadCrawler extends BaseCrawler {
         const qs = url.parse(image.url).query;
         const imageId = querystring.parse(qs).idocsId.replace(/:/g, '--');
 
-        await this.downloadImage(image.url, `${imageId}.jpg`);
+        await this.downloadFile(image.url, `${imageId}.jpg`);
       } catch (e) {
         debug('Could not download image %s: %s', image.url, e.message);
       }
@@ -275,28 +275,6 @@ class MtmadCrawler extends BaseCrawler {
         if (err) reject(err);
         else resolve();
       });
-    });
-  }
-
-  async downloadImage(imageUrl, fileName) {
-    const filePath = path.resolve(
-      process.cwd(),
-      'data',
-      MtmadCrawler.id,
-      'files',
-      fileName
-    );
-
-    // Check if file already exists
-    if (fs.existsSync(filePath)) {
-      debug('Skipping existing image %s', imageUrl);
-      return Promise.resolve();
-    }
-
-    debug('Downloading image %s', imageUrl);
-
-    return Utils.downloadFile(imageUrl, filePath, {
-      headers: this.request.headers
     });
   }
 }

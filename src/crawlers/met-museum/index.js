@@ -42,7 +42,7 @@ class MetMuseumCrawler extends BaseCrawler {
         : record.image;
       if (imageUrl) {
         try {
-          await this.downloadImage(imageUrl);
+          await this.downloadFile(imageUrl);
         } catch (e) {
           debug('Could not download image %s: %s', imageUrl, e.message);
         }
@@ -278,7 +278,7 @@ class MetMuseumCrawler extends BaseCrawler {
       for (const field of object.fields) {
         if (field.label === 'image') {
           try {
-            await this.downloadImage(field.value);
+            await this.downloadFile(field.value);
           } catch (e) {
             debug('Could not download image %s: %s', field.value, e.message);
           }
@@ -293,26 +293,6 @@ class MetMuseumCrawler extends BaseCrawler {
         else resolve();
       });
     });
-  }
-
-  async downloadImage(imageUrl) {
-    const filePath = path.resolve(
-      process.cwd(),
-      'data',
-      MetMuseumCrawler.id,
-      'files',
-      path.basename(url.parse(imageUrl).pathname)
-    );
-
-    // Check if file already exists
-    if (fs.existsSync(filePath)) {
-      debug('Skipping existing image %s', imageUrl);
-      return Promise.resolve();
-    }
-
-    debug('Downloading image %s', imageUrl);
-
-    return Utils.downloadFile(imageUrl, filePath);
   }
 }
 

@@ -313,7 +313,7 @@ class ImatexCrawler extends BaseCrawler {
     // Download the images
     for (const image of record.images) {
       try {
-        await this.downloadImage(image.url, `${image.id}.jpg`);
+        await this.downloadFile(image.url, `${image.id}.jpg`);
       } catch (e) {
         debug('Could not download image %s: %s', image.url, e.message);
       }
@@ -325,28 +325,6 @@ class ImatexCrawler extends BaseCrawler {
         if (err) reject(err);
         else resolve();
       });
-    });
-  }
-
-  async downloadImage(imageUrl, fileName) {
-    const filePath = path.resolve(
-      process.cwd(),
-      'data',
-      ImatexCrawler.id,
-      'files',
-      fileName
-    );
-
-    // Check if file already exists
-    if (fs.existsSync(filePath)) {
-      debug('Skipping existing image %s', imageUrl);
-      return Promise.resolve();
-    }
-
-    debug('Downloading image %s', imageUrl);
-
-    return Utils.downloadFile(imageUrl, filePath, {
-      headers: this.request.headers
     });
   }
 }

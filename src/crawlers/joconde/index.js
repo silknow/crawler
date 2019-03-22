@@ -195,7 +195,7 @@ class JocondeCrawler extends BaseCrawler {
     // Download the images
     for (const image of record.images) {
       try {
-        await this.downloadImage(image.url);
+        await this.downloadFile(image.url);
       } catch (e) {
         debug('Could not download image %s: %s', image.url, e.message);
       }
@@ -208,26 +208,6 @@ class JocondeCrawler extends BaseCrawler {
         else resolve();
       });
     });
-  }
-
-  async downloadImage(imageUrl) {
-    const filePath = path.resolve(
-      process.cwd(),
-      'data',
-      JocondeCrawler.id,
-      'files',
-      path.basename(url.parse(imageUrl).pathname)
-    );
-
-    // Check if file already exists
-    if (fs.existsSync(filePath)) {
-      debug('Skipping existing image %s', imageUrl);
-      return Promise.resolve();
-    }
-
-    debug('Downloading image %s', imageUrl);
-
-    return Utils.downloadFile(imageUrl, filePath);
   }
 }
 
