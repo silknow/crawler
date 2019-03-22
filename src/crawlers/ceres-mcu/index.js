@@ -33,7 +33,7 @@ class CeresMcuCrawler extends BaseCrawler {
    * @override
    */
   async start() {
-    // 1st Search Strategy
+    // 1st Search Strategy (txtSimpleSearch=Tejidos)
     debug('Executing 1st Search Strategy');
     this.currentOffset = 0;
     this.totalPages = 0;
@@ -42,7 +42,7 @@ class CeresMcuCrawler extends BaseCrawler {
     this.originalRequestData = this.request.data;
     await this.downloadNextPage();
 
-    // 2nd Search Strategy
+    // 2nd Search Strategy (txtSimpleSearch=Seda)
     debug('Executing 2nd Search Strategy');
     this.currentOffset = 0;
     this.totalPages = 0;
