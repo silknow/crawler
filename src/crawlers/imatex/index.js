@@ -25,7 +25,11 @@ class ImatexCrawler extends BaseCrawler {
       // eslint-disable-next-line prefer-destructuring
       this.selectedLanguage = process.argv[3];
     } else {
-      this.selectedLanguage = 'en';
+      console.log(
+        `[${this.constructor.id}] Language required: ` +
+          `${this.languages.join(', ')}`
+      );
+      process.exit(1);
     }
     debug('Language:', this.selectedLanguage);
 
