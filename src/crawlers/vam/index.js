@@ -30,9 +30,9 @@ class VamCrawler extends BaseCrawler {
     const resultCount = result.meta.result_count;
     this.totalPages = Math.ceil(resultCount / this.limit);
 
-    for (const record of result.records) {
+    for (const recordData of result.records) {
       try {
-        await this.downloadRecord(record.fields.object_number);
+        await this.downloadRecord(recordData.fields.object_number);
       } catch (e) {
         debug('Could not download record:', e);
       }
@@ -68,13 +68,64 @@ class VamCrawler extends BaseCrawler {
 
     // Download record
     debug('Downloading record %s', recordNumber);
+    const recordUrl = `https://www.vam.ac.uk/api/json/museumobject/${recordNumber}`;
     let response;
     try {
-      response = await axios.get(
-        `https://www.vam.ac.uk/api/json/museumobject/${recordNumber}`
-      );
+      response = await axios.get(recordUrl);
     } catch (err) {
       return Promise.reject(err);
+    }
+
+    const record = {
+      id: recordNumber,
+      url: recordUrl,
+      fields: [],
+      images: []
+    };
+
+    // Map the output to a normalized structure for the converter
+    const mapping = [
+      'object',
+      'place',
+      'date_text',
+      'artist',
+      'materials_techniques',
+      'museum_number',
+      'location',
+      'physical_description',
+      'dimensions',
+      'descriptive_line'
+    ];
+    const { fields } = response.data[0];
+    record.fields = Object.keys(fields)
+      .filter(key => mapping.includes(key))
+      .map(key => ({ label: key, value: fields[key] }));
+
+    // Categories
+    if (Array.isArray(fields.categories)) {
+      record.fields.push({
+        label: 'categories',
+        values: fields.categories.map(category => category.fields.name)
+      });
+    }
+
+    // Collections
+    if (Array.isArray(fields.collections)) {
+      record.fields.push({
+        label: 'collections',
+        values: fields.collections.map(collection => collection.fields.name)
+      });
+    }
+
+    // Images
+    if (Array.isArray(fields.image_set)) {
+      record.images = fields.image_set.map(image => ({
+        id: image.fields.image_id,
+        url: url.resolve(
+          'http://media.vam.ac.uk/media/thira/',
+          image.fields.local
+        )
+      }));
     }
 
     // Download the images
@@ -93,7 +144,7 @@ class VamCrawler extends BaseCrawler {
 
     // Save the record
     return new Promise((resolve, reject) => {
-      fs.writeFile(filePath, JSON.stringify(response.data), err => {
+      fs.writeFile(filePath, JSON.stringify(record), err => {
         if (err) reject(err);
         else resolve();
       });
