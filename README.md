@@ -25,6 +25,7 @@ node . mfa-boston
 * `mfa-boston` - Museum of Fine Arts, Boston
 * `mtmad` - Musée des Tissus
 * `risd-museum` - Rhode Island School of Design Museum
+* `vam` - Victoria and Albert Museum
 
 Crawled JSON structure of each museum can be found [here](https://github.com/silknow/crawler/wiki/Crawlers-JSON-Structure)
 
