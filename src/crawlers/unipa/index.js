@@ -8,12 +8,12 @@ const Utils = require('../../helpers/utils');
 // This crawler does not extend BaseCrawler because it relies on CSV
 // files instead of HTTP requests.
 
-class UnpaCrawler {
+class UnipaCrawler {
   constructor() {
     this.resourcesPath = path.resolve(
       process.cwd(),
       'data',
-      UnpaCrawler.id,
+      UnipaCrawler.id,
       'resources'
     );
   }
@@ -70,7 +70,7 @@ class UnpaCrawler {
     const filePath = path.resolve(
       process.cwd(),
       'data',
-      UnpaCrawler.id,
+      UnipaCrawler.id,
       'records',
       fileName
     );
@@ -120,6 +120,6 @@ class UnpaCrawler {
   }
 }
 
-UnpaCrawler.id = 'unpa';
+UnipaCrawler.id = 'unipa';
 
-module.exports = UnpaCrawler;
+module.exports = UnipaCrawler;
