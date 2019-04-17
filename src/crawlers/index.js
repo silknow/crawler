@@ -7,6 +7,7 @@ const RisdMuseumCrawler = require('./risd-museum');
 const CeresMcuCrawler = require('./ceres-mcu');
 const ImatexCrawler = require('./imatex');
 const JocondeCrawler = require('./joconde');
+const UnpaCrawler = require('./unpa');
 
 module.exports = {
   LesArtsDecoratifsCrawler,
@@ -17,5 +18,6 @@ module.exports = {
   RisdMuseumCrawler,
   CeresMcuCrawler,
   ImatexCrawler,
-  JocondeCrawler
+  JocondeCrawler,
+  UnpaCrawler
 };

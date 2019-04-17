@@ -1,6 +1,6 @@
 {
   "name": "silknow-crawler",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "SILKNOW crawler that collects metadata records describing silk material from various museums",
   "main": "index.js",
   "repository": "https://github.com/silknow/crawler",
@@ -20,6 +20,7 @@
     "bluebird": "^3.5.1",
     "camelcase": "^5.0.0",
     "cheerio": "^1.0.0-rc.2",
+    "csv": "^5.1.1",
     "dateformat": "^3.0.3",
     "debug": "^3.1.0",
     "mkdirp": "^0.5.1",
