@@ -150,8 +150,7 @@ class LesArtsDecoratifsCrawler extends BaseCrawler {
         .get();
 
       record.fields.push({
-        type: fieldType,
-        label: fieldLabel.length > 0 ? fieldLabel : undefined,
+        label: fieldLabel || fieldType || '',
         values: fieldItems
       });
     });
