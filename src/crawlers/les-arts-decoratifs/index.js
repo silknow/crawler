@@ -36,8 +36,10 @@ class LesArtsDecoratifsCrawler extends BaseCrawler {
         .find('a.selection-add')
         .first()
         .attr('href');
-      const recordNumber = path.basename(url.parse(recordUrl).pathname);
-      records.push(recordNumber);
+      if (recordUrl) {
+        const recordNumber = path.basename(url.parse(recordUrl).pathname);
+        records.push(recordNumber);
+      }
     });
 
     for (const record of records) {
