@@ -8,8 +8,8 @@ const querystring = require('querystring');
 const BaseCrawler = require('../base');
 
 class CeresMcuCrawler extends BaseCrawler {
-  constructor() {
-    super();
+  constructor(argv) {
+    super(argv);
 
     axiosRetry(axios, {
       retries: 10,

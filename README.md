@@ -15,6 +15,11 @@ The crawler takes one paramater: the name of the museum to be crawled. For examp
 ```
 node . mfa-boston
 ```
+Available parameters:
+| Parameter     | Description |
+| ------------- | ------------- |
+| --no-files | Do not download files such as photos |
+| --no-records | Do not write the JSON records |
 
 ## List of museums
 * `ceres-mcu` - Red Digital de Colecciones de Museos de España

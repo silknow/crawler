@@ -7,8 +7,8 @@ const url = require('url');
 const BaseCrawler = require('../base');
 
 class RisdMuseumCrawler extends BaseCrawler {
-  constructor() {
-    super();
+  constructor(argv) {
+    super(argv);
 
     axiosRetry(axios, {
       retries: 10,

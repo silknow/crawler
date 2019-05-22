@@ -10,8 +10,8 @@ const BaseCrawler = require('../base');
 const IMATEX_SEARCH = 'http://imatex.cdmt.cat/_cat/CercaAvancada.aspx';
 
 class ImatexCrawler extends BaseCrawler {
-  constructor() {
-    super();
+  constructor(argv) {
+    super(argv);
 
     this.languages = ['ca', 'es', 'en'];
     this.classifications = ['peces tèxtils', 'tejidos', 'textiles pieces'];

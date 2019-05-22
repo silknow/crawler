@@ -8,7 +8,9 @@ const path = require('path');
 const Utils = require('../helpers/utils');
 
 class BaseCrawler {
-  constructor() {
+  constructor(argv) {
+    this.argv = argv;
+
     this.currentOffset = 0;
     this.totalPages = 0;
     this.limit = 20;
@@ -84,6 +86,11 @@ class BaseCrawler {
   }
 
   async downloadFile(fileUrl, fileName) {
+    // Skip if --no-files is set
+    if (this.argv.files === false) {
+      return Promise.resolve();
+    }
+
     fileName = fileName || path.basename(fileUrl);
 
     const filePath = path.resolve(
@@ -123,6 +130,11 @@ class BaseCrawler {
   }
 
   async writeRecord(record) {
+    // Skip if --no-records is set
+    if (this.argv.records === false) {
+      return Promise.resolve();
+    }
+
     const filePath = this.getRecordPath(record.id);
 
     // Create record directory path

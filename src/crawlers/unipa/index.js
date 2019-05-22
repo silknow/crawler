@@ -3,13 +3,13 @@ const csv = require('csv');
 const fs = require('fs');
 const path = require('path');
 
+const BaseCrawler = require('../base');
 const Utils = require('../../helpers/utils');
 
-// This crawler does not extend BaseCrawler because it relies on CSV
-// files instead of HTTP requests.
+class UnipaCrawler extends BaseCrawler {
+  constructor(argv) {
+    super(argv);
 
-class UnipaCrawler {
-  constructor() {
     this.resourcesPath = path.resolve(
       process.cwd(),
       'data',
@@ -57,7 +57,7 @@ class UnipaCrawler {
           }
 
           const recordNumber = path.basename(filePath, '.csv');
-          await this.writeRecord(data, recordNumber);
+          await this.parseRecord(data, recordNumber);
           resolve();
         }
       );
@@ -65,7 +65,7 @@ class UnipaCrawler {
     });
   }
 
-  async writeRecord(recordData, recordNumber) {
+  async parseRecord(recordData, recordNumber) {
     if (this.recordExists(recordNumber)) {
       debug('Skipping existing record %s', recordNumber);
       return Promise.resolve();
@@ -94,7 +94,6 @@ class UnipaCrawler {
       }
     });
 
-    // Save the record
     return this.writeRecord(record);
   }
 }
