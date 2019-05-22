@@ -38,13 +38,16 @@ class MfaBostonCrawler extends BaseCrawler {
     const records = [];
     $('.view-id-search_objects .views-row > a').each((i, elem) => {
       const recordUrl = $(elem).attr('href');
-      const recordNumber = path.basename(url.parse(recordUrl).pathname);
-      records.push(recordNumber);
+      const recordNumber = path
+        .basename(url.parse(recordUrl).pathname)
+        .split('-')
+        .pop();
+      records.push({ recordNumber, recordUrl });
     });
 
-    for (const record of records) {
+    for (const { recordNumber, recordUrl } of records) {
       try {
-        await this.downloadRecord(record);
+        await this.downloadRecord(recordNumber, recordUrl);
       } catch (e) {
         debug('Could not download record:', e);
       }
@@ -55,7 +58,7 @@ class MfaBostonCrawler extends BaseCrawler {
     return Promise.resolve();
   }
 
-  async downloadRecord(recordNumber) {
+  async downloadRecord(recordNumber, recordUrl) {
     if (this.recordExists(recordNumber)) {
       debug('Skipping existing record %s', recordNumber);
       return Promise.resolve();
@@ -63,7 +66,6 @@ class MfaBostonCrawler extends BaseCrawler {
 
     // Download record
     debug('Downloading record %s', recordNumber);
-    const recordUrl = `https://www.mfa.org/collections/object/${recordNumber}`;
     let response;
     try {
       response = await axios.get(recordUrl);
