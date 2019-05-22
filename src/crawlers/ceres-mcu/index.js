@@ -2,12 +2,10 @@ const debug = require('debug')('silknow:crawlers:ceres-mcu');
 const axios = require('axios');
 const axiosRetry = require('axios-retry');
 const cheerio = require('cheerio');
-const fs = require('fs');
-const path = require('path');
+const filenamify = require('filenamify');
 const querystring = require('querystring');
 
 const BaseCrawler = require('../base');
-const Utils = require('../../helpers/utils');
 
 class CeresMcuCrawler extends BaseCrawler {
   constructor() {
@@ -122,27 +120,9 @@ class CeresMcuCrawler extends BaseCrawler {
 
   async downloadRecord(recordInfo) {
     const recordNumber = `${recordInfo.id}_${recordInfo.museum}`;
-    const sanitizedRecordNumber = recordNumber.replace(/\//g, '-'); // some records have a '/' (eg. 'CE01661/1'), replace it with '-'
-    const fileName = `${sanitizedRecordNumber}.json`;
-    const filePath = path.resolve(
-      process.cwd(),
-      'data',
-      CeresMcuCrawler.id,
-      'records',
-      fileName
-    );
-
-    // check if file already exists
-    if (fs.existsSync(filePath)) {
+    if (this.recordExists(recordNumber)) {
       debug('Skipping existing record %s', recordNumber);
       return Promise.resolve();
-    }
-
-    // Create record directory path
-    try {
-      await Utils.createPath(path.dirname(filePath));
-    } catch (e) {
-      return Promise.reject(e);
     }
 
     // Download record
@@ -231,6 +211,7 @@ class CeresMcuCrawler extends BaseCrawler {
     });
 
     // Download the images
+    const sanitizedRecordNumber = filenamify(recordNumber);
     for (const [index, image] of record.images.entries()) {
       try {
         await this.downloadFile(
@@ -243,12 +224,7 @@ class CeresMcuCrawler extends BaseCrawler {
     }
 
     // Save the record
-    return new Promise((resolve, reject) => {
-      fs.writeFile(filePath, JSON.stringify(record), err => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
+    return this.writeRecord(record);
   }
 }
 

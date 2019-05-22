@@ -2,6 +2,7 @@ const debug = require('debug')('silknow:crawlers:base');
 const axios = require('axios');
 const axiosRetry = require('axios-retry');
 const fs = require('fs');
+const filenamify = require('filenamify');
 const path = require('path');
 
 const Utils = require('../helpers/utils');
@@ -102,6 +103,41 @@ class BaseCrawler {
     debug('Downloading file %s as %s', fileUrl, fileName);
 
     return Utils.downloadFile(fileUrl, filePath);
+  }
+
+  getRecordPath(recordId) {
+    const sanitizedRecordId = filenamify(recordId);
+    const fileName = `${sanitizedRecordId}.json`;
+    const filePath = path.resolve(
+      process.cwd(),
+      'data',
+      this.constructor.id,
+      'records',
+      fileName
+    );
+    return filePath;
+  }
+
+  recordExists(recordId) {
+    return fs.existsSync(this.getRecordPath(recordId));
+  }
+
+  async writeRecord(record) {
+    const filePath = this.getRecordPath(record.id);
+
+    // Create record directory path
+    try {
+      await Utils.createPath(path.dirname(filePath));
+    } catch (e) {
+      return Promise.reject(e);
+    }
+
+    return new Promise((resolve, reject) => {
+      fs.writeFile(filePath, JSON.stringify(record), err => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
   }
 }
 

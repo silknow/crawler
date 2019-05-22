@@ -66,26 +66,9 @@ class UnipaCrawler {
   }
 
   async writeRecord(recordData, recordNumber) {
-    const fileName = `${recordNumber}.json`;
-    const filePath = path.resolve(
-      process.cwd(),
-      'data',
-      UnipaCrawler.id,
-      'records',
-      fileName
-    );
-
-    // check if file already exists
-    if (fs.existsSync(filePath)) {
+    if (this.recordExists(recordNumber)) {
       debug('Skipping existing record %s', recordNumber);
       return Promise.resolve();
-    }
-
-    // Create record directory path
-    try {
-      await Utils.createPath(path.dirname(filePath));
-    } catch (e) {
-      return Promise.reject(e);
     }
 
     debug('Writing record %s', recordNumber);
@@ -111,12 +94,8 @@ class UnipaCrawler {
       }
     });
 
-    return new Promise((resolve, reject) => {
-      fs.writeFile(filePath, JSON.stringify(record), err => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
+    // Save the record
+    return this.writeRecord(record);
   }
 }
 

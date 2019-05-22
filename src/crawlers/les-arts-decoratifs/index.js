@@ -2,12 +2,10 @@ const debug = require('debug')('silknow:crawlers:les-arts-decoratifs');
 const axios = require('axios');
 const axiosRetry = require('axios-retry');
 const cheerio = require('cheerio');
-const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
 const BaseCrawler = require('../base');
-const Utils = require('../../helpers/utils');
 
 class LesArtsDecoratifsCrawler extends BaseCrawler {
   constructor() {
@@ -58,26 +56,9 @@ class LesArtsDecoratifsCrawler extends BaseCrawler {
   }
 
   async downloadRecord(recordNumber) {
-    const fileName = `${recordNumber}.json`;
-    const filePath = path.resolve(
-      process.cwd(),
-      'data',
-      LesArtsDecoratifsCrawler.id,
-      'records',
-      fileName
-    );
-
-    // check if file already exists
-    if (fs.existsSync(filePath)) {
+    if (this.recordExists(recordNumber)) {
       debug('Skipping existing record %s', recordNumber);
       return Promise.resolve();
-    }
-
-    // Create record directory path
-    try {
-      await Utils.createPath(path.dirname(filePath));
-    } catch (e) {
-      return Promise.reject(e);
     }
 
     // Download record
@@ -167,12 +148,7 @@ class LesArtsDecoratifsCrawler extends BaseCrawler {
     }
 
     // Save the record
-    return new Promise((resolve, reject) => {
-      fs.writeFile(filePath, JSON.stringify(record), err => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
+    return this.writeRecord(record);
   }
 }
 
