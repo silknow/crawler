@@ -31,6 +31,7 @@ Available parameters:
 * `mtmad` - Musée des Tissus
 * `risd-museum` - Rhode Island School of Design Museum
 * `vam` - Victoria and Albert Museum
+* `unipa` - Museo Diocesano Di Palermo
 
 Crawled JSON structure of each museum can be found [here](https://github.com/silknow/crawler/wiki/Crawlers-JSON-Structure)
 
