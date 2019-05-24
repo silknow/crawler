@@ -129,13 +129,15 @@ class BaseCrawler {
     return !!this.argv.force || fs.existsSync(this.getRecordPath(recordId));
   }
 
-  async writeRecord(record) {
+  async writeRecord(record, recordName) {
+    recordName = recordName || record.id;
+
     // Skip if --no-records is set
     if (this.argv.records === false) {
       return Promise.resolve();
     }
 
-    const filePath = this.getRecordPath(record.id);
+    const filePath = this.getRecordPath(recordName);
 
     // Create record directory path
     try {

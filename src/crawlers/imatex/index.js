@@ -144,9 +144,9 @@ class ImatexCrawler extends BaseCrawler {
       records.push(fitxa[0]);
     }
 
-    for (const record of records) {
+    for (const recordNumber of records) {
       try {
-        await this.downloadRecord(record);
+        await this.downloadRecord(recordNumber);
       } catch (e) {
         debug('Could not download record:', e);
       }
@@ -158,7 +158,8 @@ class ImatexCrawler extends BaseCrawler {
   }
 
   async downloadRecord(recordNumber) {
-    if (this.recordExists(recordNumber)) {
+    const recordName = `${recordNumber}-${this.selectedLanguage}`;
+    if (this.recordExists(recordName)) {
       debug('Skipping existing record %s', recordNumber);
       return Promise.resolve();
     }
@@ -304,7 +305,7 @@ class ImatexCrawler extends BaseCrawler {
     }
 
     // Save the record
-    return this.writeRecord(record);
+    return this.writeRecord(record, recordName);
   }
 }
 
