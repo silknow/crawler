@@ -126,7 +126,7 @@ class BaseCrawler {
   }
 
   recordExists(recordId) {
-    return fs.existsSync(this.getRecordPath(recordId));
+    return !!this.argv.force || fs.existsSync(this.getRecordPath(recordId));
   }
 
   async writeRecord(record) {
