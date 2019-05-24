@@ -91,7 +91,7 @@ class BaseCrawler {
       return Promise.resolve();
     }
 
-    fileName = fileName || path.basename(fileUrl);
+    fileName = filenamify(fileName || path.basename(fileUrl));
 
     const filePath = path.resolve(
       process.cwd(),

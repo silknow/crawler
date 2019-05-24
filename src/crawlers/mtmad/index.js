@@ -240,10 +240,7 @@ class MtmadCrawler extends BaseCrawler {
     // Download the images
     for (const image of record.images) {
       try {
-        const qs = url.parse(image.url).query;
-        const imageId = querystring.parse(qs).idocsId.replace(/:/g, '--');
-
-        await this.downloadFile(image.url, `${imageId}.jpg`);
+        await this.downloadFile(image.url);
       } catch (e) {
         debug('Could not download image %s: %s', image.url, e.message);
       }
