@@ -3,7 +3,6 @@ const axios = require('axios');
 const axiosRetry = require('axios-retry');
 const cheerio = require('cheerio');
 const querystring = require('querystring');
-const url = require('url');
 
 const BaseCrawler = require('../base');
 
