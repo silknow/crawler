@@ -64,21 +64,9 @@ class VamCrawler extends BaseCrawler {
     };
 
     // Map the output to a normalized structure for the converter
-    const mapping = [
-      'object',
-      'place',
-      'date_text',
-      'artist',
-      'materials_techniques',
-      'museum_number',
-      'location',
-      'physical_description',
-      'dimensions',
-      'descriptive_line'
-    ];
     const { fields } = response.data[0];
     record.fields = Object.keys(fields)
-      .filter(key => mapping.includes(key))
+      .filter(key => ['string', 'number'].includes(typeof fields[key]))
       .map(key => ({ label: key, value: fields[key] }));
 
     // Categories
@@ -86,6 +74,22 @@ class VamCrawler extends BaseCrawler {
       record.fields.push({
         label: 'categories',
         values: fields.categories.map(category => category.fields.name)
+      });
+    }
+
+    // Materials
+    if (Array.isArray(fields.materials)) {
+      record.fields.push({
+        label: 'materials',
+        values: fields.materials.map(material => material.fields.name)
+      });
+    }
+
+    // Techniques
+    if (Array.isArray(fields.techniques)) {
+      record.fields.push({
+        label: 'techniques',
+        values: fields.techniques.map(technique => technique.fields.name)
       });
     }
 
