@@ -1,4 +1,4 @@
-const debug = require('debug')('silknow:crawlers:unpa');
+const debug = require('debug')('silknow:crawlers:unipa');
 const csv = require('csv');
 const fs = require('fs');
 const path = require('path');
@@ -86,11 +86,13 @@ class UnipaCrawler extends BaseCrawler {
 
       if (row[0] === 'Images (names of the images in the document)') {
         const imagesIds = row[1].split(';');
-        imagesIds.map(imageId => imageId.trim()).forEach(imageId => {
-          record.images.push({
-            id: imageId
+        imagesIds
+          .map(imageId => imageId.trim())
+          .forEach(imageId => {
+            record.images.push({
+              id: imageId
+            });
           });
-        });
       }
     });
 
