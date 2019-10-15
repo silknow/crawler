@@ -5,6 +5,7 @@ const cheerio = require('cheerio');
 const url = require('url');
 
 const BaseCrawler = require('../base');
+const Record = require('../record');
 
 class MetMuseumCrawler extends BaseCrawler {
   constructor(argv) {
@@ -26,23 +27,20 @@ class MetMuseumCrawler extends BaseCrawler {
     const resultCount = result.totalResults;
     this.totalPages = Math.ceil(resultCount / this.limit);
 
-    for (const record of result.results) {
+    for (const recordData of result.results) {
       try {
-        await this.downloadRecord(record);
+        const record = await this.downloadRecord(recordData);
+
+        // Download the images
+        for (const image of record.getImages()) {
+          const imageUrl = url.resolve(
+            'https://images.metmuseum.org/CRDImages/',
+            image.url
+          );
+          this.downloadImage(imageUrl);
+        }
       } catch (e) {
         debug('Could not download record:', e);
-      }
-
-      // Download the images
-      const imageUrl = record.largeImage
-        ? `https://images.metmuseum.org/CRDImages/${record.largeImage}`
-        : record.image;
-      if (imageUrl) {
-        try {
-          await this.downloadFile(imageUrl);
-        } catch (e) {
-          debug('Could not download image %s: %s', imageUrl, e.message);
-        }
       }
     }
 
@@ -52,18 +50,28 @@ class MetMuseumCrawler extends BaseCrawler {
   }
 
   async downloadRecord(recordData) {
-    const recordNumber = recordData.accessionNumber;
-    if (this.recordExists(recordNumber)) {
-      debug('Skipping existing record %s', recordNumber);
-      return Promise.resolve();
-    }
-
-    // Download record
-    debug('Downloading record %s', recordNumber);
     const recordUrl = url.resolve(
       'https://www.metmuseum.org/',
       url.parse(recordData.url).pathname
     );
+
+    // Get the actual collection ID (different from the accession number)
+    const idMatch = recordUrl.match(/\/collection\/search\/([0-9]+)/);
+    if (!idMatch) {
+      throw new Error(
+        `Could not resolve collection ID for record ${recordUrl}`
+      );
+    }
+
+    const recordNumber = idMatch[1];
+    if (this.recordExists(recordNumber)) {
+      debug('Skipping existing record %s', recordNumber);
+      const record = await this.getRecord(recordNumber);
+      return Promise.resolve(record);
+    }
+
+    // Download record
+    debug('Downloading record %s', recordNumber);
     let response;
     try {
       response = await axios.get(recordUrl);
@@ -73,46 +81,20 @@ class MetMuseumCrawler extends BaseCrawler {
 
     const $ = cheerio.load(response.data);
 
-    const record = {
-      id: recordNumber,
-      url: recordUrl,
-      fields: [],
-      relatedObjects: []
-    };
+    const record = new Record(recordNumber, recordUrl);
 
-    // Get the actual collection ID (different from the accession number)
-    const idMatch = recordUrl.match(/\/collection\/search\/([0-9]+)/);
-    if (idMatch) {
-      const id = idMatch[1];
-      record.id = id;
-    }
-
-    // Properties to label-value array
-    Object.keys(recordData).forEach(label => {
-      const value = recordData[label];
-      record.fields.push({
-        label,
-        value
-      });
-    });
-
-    // Resolve relative URLs
-    record.fields.forEach(field => {
-      switch (field.label) {
-        case 'image':
-        case 'regularImage':
-        case 'largeImage':
-          field.value = url.resolve(
-            'https://images.metmuseum.org/CRDImages/',
-            field.value
-          );
-          break;
-        case 'url':
-          field.value = url.resolve('https://www.metmuseum.org/', field.value);
-          break;
-        default:
-          break;
-      }
+    // Images
+    $('.met-carousel__item__thumbnail').each((i, elem) => {
+      const image = {
+        id: '',
+        url: url.resolve(
+          'https://images.metmuseum.org/CRDImages/',
+          $(elem).attr('data-superjumboimage')
+        ),
+        title: $(elem).attr('title'),
+        description: $(elem).attr('alt')
+      };
+      record.addImage(image);
     });
 
     // Add details fields from the web page
@@ -127,21 +109,23 @@ class MetMuseumCrawler extends BaseCrawler {
         .first()
         .text();
 
-      record.fields.push({
-        label,
-        value
-      });
+      record.addField(label, value);
     });
 
+    // Title
+    record.addField(
+      'title',
+      $('.artwork__title--text')
+        .first()
+        .text()
+        .trim()
+    );
+
     // Image license
-    const license = $('.utility-menu__item-link-text')
-      .text()
-      .trim();
-    if (license.length > 0) {
-      record.fields.push({
-        label: 'Rights on images',
-        value: license
-      });
+    const $license = $('.artwork__access span a').first();
+    if ($license.length > 0) {
+      record.addField('imagesRightsLink', $license.attr('href'));
+      record.addField('imagesRightsText', $license.text());
     }
 
     // Facets
@@ -164,110 +148,100 @@ class MetMuseumCrawler extends BaseCrawler {
     });
     Object.keys(facets).forEach(label => {
       const values = facets[label];
-      record.fields.push({
-        label,
-        values
-      });
+      record.addField(label, values);
     });
 
-    // Provenance
+    // Accordion items
     $('.component__accordions > .accordion').each((i, elem) => {
-      if (
+      const label = $(elem)
+        .find('.accordion__header')
+        .first()
+        .text()
+        .trim();
+      if ($(elem).find('.link-list').length > 0) {
+        const values = [];
         $(elem)
-          .find('.accordion__header')
+          .find('.link-list a')
+          .each((j, link) => {
+            values.push(
+              `${$(link).attr('href')}|${$(link)
+                .text()
+                .trim()}`
+            );
+          });
+        record.addField(label, values);
+      } else {
+        $(elem)
+          .find('.accordion__content')
+          .first()
+          .find('br')
+          .replaceWith('\n');
+        const value = $(elem)
+          .find('.accordion__content')
           .first()
           .text()
-          .trim() === 'Provenance'
-      ) {
-        record.fields.push({
-          label: 'provenance',
-          value: $(elem)
-            .find('.accordion__content')
-            .first()
-            .text()
-            .trim()
-        });
+          .trim();
+        record.addField(label, value);
       }
     });
 
     // Related objects
+    const relatedObjects = [];
     $('.component__related-objects .card--collection').each((i, elem) => {
-      const relatedObject = {
-        id: '',
-        url: '',
-        fields: []
-      };
-
       // Title and URL
       const $link = $(elem)
         .find('.card__title a')
         .first();
-      relatedObject.fields.push({
-        label: 'title',
-        value: $link.text()
-      });
-      relatedObject.url = url.resolve(
+      const linkUrl = url.resolve(
         'https://www.metmuseum.org/',
         $link.attr('href')
       );
 
-      // Collection ID
-      const relatedIdMatch = relatedObject.url.match(
-        /\/collection\/search\/([0-9]+)/
-      );
-      if (relatedIdMatch) {
-        const id = relatedIdMatch[1];
-        relatedObject.id = id;
-      }
-
-      // Image
-      const imageSrc = $(elem)
-        .find('.card__standard-image img')
-        .first()
-        .attr('data-src')
-        .replace(/\/CRDImages\/(.+)\/(.+)\//, '/CRDImages/$1/web-large/');
-      const imageUrl = url.resolve('https://www.metmuseum.org/', imageSrc);
-      relatedObject.fields.push({
-        label: 'image',
-        value: imageUrl
-      });
-
-      // Other fields
-      $(elem)
-        .find('.card__meta-item')
-        .each((j, item) => {
-          const label = $(item)
-            .find('.card__meta-label')
-            .first()
-            .text();
-          const value = $(item)
-            .find('.card__meta-data')
-            .first()
-            .text();
-          relatedObject.fields.push({
-            label,
-            value
-          });
-        });
-
-      record.relatedObjects.push(relatedObject);
+      relatedObjects.push(linkUrl);
     });
+    record.addField('relatedObjects', relatedObjects);
 
-    // Download related objects images
-    for (const object of record.relatedObjects) {
-      for (const field of object.fields) {
-        if (field.label === 'image') {
-          try {
-            await this.downloadFile(field.value);
-          } catch (e) {
-            debug('Could not download image %s: %s', field.value, e.message);
-          }
+    // Save the record
+    await this.writeRecord(record);
+
+    // Download related objects records
+    for (const relatedUrl of relatedObjects) {
+      try {
+        const relatedRecord = await this.downloadRecord({ url: relatedUrl });
+
+        // Download the images
+        for (const image of relatedRecord.getImages()) {
+          const imageUrl = url.resolve(
+            'https://images.metmuseum.org/CRDImages/',
+            image.url
+          );
+          await this.downloadImage(imageUrl);
         }
+      } catch (e) {
+        debug('Could not download related record:', e);
       }
     }
 
-    // Save the record
-    return this.writeRecord(record);
+    return Promise.resolve(record);
+  }
+
+  async downloadImage(imageUrl) {
+    try {
+      await this.downloadFile(imageUrl);
+    } catch (e) {
+      // Some images with /original/ links return an error 404 Not Found
+      // Try again with /web-large/ instead, which returns a slightly
+      // smaller image size, but seems to be available more often.
+      if (imageUrl.includes('/original/')) {
+        try {
+          await this.downloadFile(
+            imageUrl.replace(/\/original\//, '/web-large/')
+          );
+        } catch (err) {
+          debug('Could not download image %s: %s', imageUrl, e.message);
+        }
+      }
+    }
   }
 }
 
