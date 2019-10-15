@@ -56,14 +56,13 @@ class MetMuseumCrawler extends BaseCrawler {
     );
 
     // Get the actual collection ID (different from the accession number)
-    const idMatch = recordUrl.match(/\/collection\/search\/([0-9]+)/);
-    if (!idMatch) {
+    const recordNumber = this.getRecordNumberFromUrl(recordUrl);
+    if (!recordNumber) {
       throw new Error(
         `Could not resolve collection ID for record ${recordUrl}`
       );
     }
 
-    const recordNumber = idMatch[1];
     if (this.recordExists(recordNumber)) {
       debug('Skipping existing record %s', recordNumber);
       const record = await this.getRecord(recordNumber);
@@ -196,18 +195,23 @@ class MetMuseumCrawler extends BaseCrawler {
         'https://www.metmuseum.org/',
         $link.attr('href')
       );
-
-      relatedObjects.push(linkUrl);
+      const relatedNumber = this.getRecordNumberFromUrl(linkUrl);
+      if (relatedNumber) {
+        relatedObjects.push({
+          id: relatedNumber,
+          url: linkUrl
+        });
+      }
     });
-    record.addField('relatedObjects', relatedObjects);
+    record.addField('relatedObjects', relatedObjects.map(r => r.id));
 
     // Save the record
     await this.writeRecord(record);
 
     // Download related objects records
-    for (const relatedUrl of relatedObjects) {
+    for (const relatedData of relatedObjects) {
       try {
-        const relatedRecord = await this.downloadRecord({ url: relatedUrl });
+        const relatedRecord = await this.downloadRecord(relatedData);
 
         // Download the images
         for (const image of relatedRecord.getImages()) {
@@ -242,6 +246,11 @@ class MetMuseumCrawler extends BaseCrawler {
         }
       }
     }
+  }
+
+  getRecordNumberFromUrl(recordUrl) {
+    const idMatch = recordUrl.match(/\/collection\/search\/([0-9]+)/);
+    return Array.isArray(idMatch) ? idMatch[1] : null;
   }
 }
 
