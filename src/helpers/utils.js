@@ -46,6 +46,7 @@ class Utils {
             });
 
             response.data.on('error', err => {
+              fs.unlink(filePath);
               reject(err);
             });
           })
