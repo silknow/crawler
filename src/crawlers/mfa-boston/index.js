@@ -7,6 +7,7 @@ const path = require('path');
 const url = require('url');
 
 const BaseCrawler = require('../base');
+const Record = require('../record');
 
 class MfaBostonCrawler extends BaseCrawler {
   constructor(argv) {
@@ -73,52 +74,47 @@ class MfaBostonCrawler extends BaseCrawler {
       return Promise.reject(err);
     }
 
-    const record = {
-      id: recordNumber,
-      url: recordUrl,
-      fields: [],
-      images: []
-    };
+    const record = new Record(recordNumber, recordUrl);
 
     const $ = cheerio.load(response.data);
 
     // Item details (in first grid)
     const grid = $('.node-object .content .grid-6').first();
-    record.fields.push({
-      label: 'title',
-      value: $(grid)
+    record.addField(
+      'title',
+      $(grid)
         .find('h2')
         .first()
         .text()
         .trim()
-    });
-    record.fields.push({
-      label: 'subtitle',
-      value: $(grid)
+    );
+    record.addField(
+      'subtitle',
+      $(grid)
         .find('h2')
         .next('h3')
         .text()
         .trim()
-    });
-    record.fields.push({
-      label: 'teaser',
-      value: $(grid)
+    );
+    record.addField(
+      'teaser',
+      $(grid)
         .find('h2')
         .nextAll('hr')
         .first()
         .prev('p')
         .text()
         .trim()
-    });
+    );
 
     // Description (in second grid)
-    record.fields.push({
-      label: 'description',
-      value: $('.node-object .content .grid-6 .body')
+    record.addField(
+      'description',
+      $('.node-object .content .grid-6 .body')
         .first()
         .text()
         .trim()
-    });
+    );
 
     // Fields (in both grids)
     $('.node-object .content .grid-6')
@@ -134,10 +130,7 @@ class MfaBostonCrawler extends BaseCrawler {
           .trim();
 
         const label = camelCase(text);
-        record.fields.push({
-          label,
-          value
-        });
+        record.addField(label, value);
       });
 
     // Images (in main slider)
@@ -145,14 +138,14 @@ class MfaBostonCrawler extends BaseCrawler {
       '.node-object .content .slider .slideshow > .carousel-content .object img'
     ).each((i, elem) => {
       const imageUrl = $(elem).attr('src');
-      record.images.push({
+      record.addImage({
         id: '',
         url: imageUrl
       });
     });
 
     // Download the images
-    for (const image of record.images) {
+    for (const image of record.getImages()) {
       try {
         await this.downloadFile(image.url);
       } catch (e) {

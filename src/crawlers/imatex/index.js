@@ -6,6 +6,7 @@ const querystring = require('querystring');
 const url = require('url');
 
 const BaseCrawler = require('../base');
+const Record = require('../record');
 
 const IMATEX_SEARCH = 'http://imatex.cdmt.cat/_cat/CercaAvancada.aspx';
 
@@ -180,15 +181,10 @@ class ImatexCrawler extends BaseCrawler {
       return Promise.reject(err);
     }
 
-    const record = {
-      id: recordNumber,
-      url: recordUrl,
-      fields: [],
-      bibliography: [],
-      expositions: [],
-      otherPieces: [],
-      images: []
-    };
+    const record = new Record(recordNumber, recordUrl);
+    record.bibliography = [];
+    record.expositions = [];
+    record.otherPieces = [];
 
     const $ = cheerio.load(response.data);
 
@@ -203,10 +199,7 @@ class ImatexCrawler extends BaseCrawler {
         .text()
         .trim();
 
-      record.fields.push({
-        label,
-        value
-      });
+      record.addField(label, value);
     });
 
     // Bibliography
@@ -285,7 +278,7 @@ class ImatexCrawler extends BaseCrawler {
         .trim();
 
       if (imageUrl.length > 0) {
-        record.images.push({
+        record.addImage({
           id: imageId,
           url: url.resolve(
             'http://imatex.cdmt.cat/_cat/',
@@ -296,7 +289,7 @@ class ImatexCrawler extends BaseCrawler {
     });
 
     // Download the images
-    for (const image of record.images) {
+    for (const image of record.getImages()) {
       try {
         await this.downloadFile(image.url, `${image.id}.jpg`);
       } catch (e) {

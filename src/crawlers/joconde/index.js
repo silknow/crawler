@@ -5,6 +5,7 @@ const cheerio = require('cheerio');
 const url = require('url');
 
 const BaseCrawler = require('../base');
+const Record = require('../record');
 
 class JocondeCrawler extends BaseCrawler {
   constructor(argv) {
@@ -121,11 +122,7 @@ class JocondeCrawler extends BaseCrawler {
       return Promise.reject(err);
     }
 
-    const record = {
-      id: recordNumber,
-      fields: [],
-      images: []
-    };
+    const record = new Record(recordNumber);
 
     const $ = cheerio.load(response.data.toString('latin1'));
 
@@ -152,10 +149,7 @@ class JocondeCrawler extends BaseCrawler {
           .trim();
 
         if (label.length > 0 || value.length > 0) {
-          record.fields.push({
-            label,
-            value
-          });
+          record.addField(label, value);
         }
       }
     );
@@ -166,14 +160,14 @@ class JocondeCrawler extends BaseCrawler {
         .parent()
         .attr('href');
 
-      record.images.push({
+      record.addImage({
         id: '',
         url: url.resolve('http://www2.culture.gouv.fr/', imageUrl)
       });
     });
 
     // Download the images
-    for (const image of record.images) {
+    for (const image of record.getImages()) {
       try {
         await this.downloadFile(image.url);
       } catch (e) {

@@ -6,6 +6,7 @@ const filenamify = require('filenamify');
 const querystring = require('querystring');
 
 const BaseCrawler = require('../base');
+const Record = require('../record');
 
 class CeresMcuCrawler extends BaseCrawler {
   constructor(argv) {
@@ -149,11 +150,7 @@ class CeresMcuCrawler extends BaseCrawler {
       return Promise.reject(err);
     }
 
-    const record = {
-      id: recordNumber,
-      fields: [],
-      images: []
-    };
+    const record = new Record(recordNumber);
 
     const $ = cheerio.load(response.data.toString('latin1'));
 
@@ -170,10 +167,7 @@ class CeresMcuCrawler extends BaseCrawler {
         .text()
         .trim();
 
-      record.fields.push({
-        label,
-        value
-      });
+      record.addField(label, value);
     });
 
     // Main image
@@ -184,7 +178,7 @@ class CeresMcuCrawler extends BaseCrawler {
         .text()
         .trim();
 
-      record.images.push({
+      record.addImage({
         id: recordInfo.id,
         url: `http://ceres.mcu.es/pages/Viewer?accion=42&AMuseo=${encodeURIComponent(
           recordInfo.museum
@@ -202,7 +196,7 @@ class CeresMcuCrawler extends BaseCrawler {
         .text()
         .trim();
 
-      record.images.push({
+      record.addImage({
         url: `http://ceres.mcu.es/pages/Viewer?accion=42&AMuseo=${encodeURIComponent(
           recordInfo.museum
         )}&Ninv=${encodeURIComponent(recordInfo.id)}&txt_id_imagen=${i + 1}`,

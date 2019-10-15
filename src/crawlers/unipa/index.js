@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const BaseCrawler = require('../base');
+const Record = require('../record');
 const Utils = require('../../helpers/utils');
 
 class UnipaCrawler extends BaseCrawler {
@@ -72,27 +73,18 @@ class UnipaCrawler extends BaseCrawler {
     }
 
     debug('Writing record %s', recordNumber);
-    const record = {
-      id: recordNumber,
-      fields: [],
-      images: []
-    };
+    const record = new Record(recordNumber);
 
     recordData.forEach(row => {
-      record.fields.push({
-        label: row[0],
-        value: row[1]
-      });
+      record.addField(row[0], row[1]);
 
       if (row[0] === 'Images (names of the images in the document)') {
         const imagesIds = row[1].split(';');
-        imagesIds
-          .map(imageId => imageId.trim())
-          .forEach(imageId => {
-            record.images.push({
-              id: imageId
-            });
+        imagesIds.map(imageId => imageId.trim()).forEach(imageId => {
+          record.addImage({
+            id: imageId
           });
+        });
       }
     });
 

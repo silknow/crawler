@@ -6,6 +6,7 @@ const filenamify = require('filenamify');
 const path = require('path');
 
 const Utils = require('../helpers/utils');
+const Record = require('./record');
 
 class BaseCrawler {
   constructor(argv) {
@@ -127,6 +128,18 @@ class BaseCrawler {
 
   recordExists(recordId) {
     return !!this.argv.force || fs.existsSync(this.getRecordPath(recordId));
+  }
+
+  getRecord(recordId) {
+    return new Promise((resolve, reject) => {
+      fs.readFile(this.getRecordPath(recordId), 'utf8', (err, data) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(new Record(JSON.parse(data)));
+      });
+    });
   }
 
   async writeRecord(record, recordName) {

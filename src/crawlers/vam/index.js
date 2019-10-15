@@ -4,6 +4,7 @@ const axiosRetry = require('axios-retry');
 const url = require('url');
 
 const BaseCrawler = require('../base');
+const Record = require('../record');
 
 class VamCrawler extends BaseCrawler {
   constructor(argv) {
@@ -56,12 +57,7 @@ class VamCrawler extends BaseCrawler {
       return Promise.reject(err);
     }
 
-    const record = {
-      id: recordNumber,
-      url: recordUrl,
-      fields: [],
-      images: []
-    };
+    const record = new Record(recordNumber, recordUrl);
 
     // Map the output to a normalized structure for the converter
     const { fields } = response.data[0];
@@ -71,34 +67,34 @@ class VamCrawler extends BaseCrawler {
 
     // Categories
     if (Array.isArray(fields.categories)) {
-      record.fields.push({
-        label: 'categories',
-        values: fields.categories.map(category => category.fields.name)
-      });
+      record.addField(
+        'categories',
+        fields.categories.map(category => category.fields.name)
+      );
     }
 
     // Materials
     if (Array.isArray(fields.materials)) {
-      record.fields.push({
-        label: 'materials',
-        values: fields.materials.map(material => material.fields.name)
-      });
+      record.addField(
+        'materials',
+        fields.materials.map(material => material.fields.name)
+      );
     }
 
     // Techniques
     if (Array.isArray(fields.techniques)) {
-      record.fields.push({
-        label: 'techniques',
-        values: fields.techniques.map(technique => technique.fields.name)
-      });
+      record.addField(
+        'techniques',
+        fields.techniques.map(technique => technique.fields.name)
+      );
     }
 
     // Collections
     if (Array.isArray(fields.collections)) {
-      record.fields.push({
-        label: 'collections',
-        values: fields.collections.map(collection => collection.fields.name)
-      });
+      record.addField(
+        'collections',
+        fields.collections.map(collection => collection.fields.name)
+      );
     }
 
     // Images

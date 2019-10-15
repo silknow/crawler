@@ -6,6 +6,7 @@ const path = require('path');
 const url = require('url');
 
 const BaseCrawler = require('../base');
+const Record = require('../record');
 
 class LesArtsDecoratifsCrawler extends BaseCrawler {
   constructor(argv) {
@@ -71,12 +72,7 @@ class LesArtsDecoratifsCrawler extends BaseCrawler {
       return Promise.reject(err);
     }
 
-    const record = {
-      id: recordNumber,
-      url: recordUrl,
-      fields: [],
-      images: []
-    };
+    const record = new Record(recordNumber, recordUrl);
 
     const $ = cheerio.load(response.data);
 
@@ -114,7 +110,7 @@ class LesArtsDecoratifsCrawler extends BaseCrawler {
               .children('img')
               .each((k, img) => {
                 const imageUrl = $(img).attr('src');
-                record.images.push({
+                record.addImage({
                   id: '',
                   url: imageUrl
                 });
@@ -132,14 +128,11 @@ class LesArtsDecoratifsCrawler extends BaseCrawler {
         })
         .get();
 
-      record.fields.push({
-        label: fieldLabel || fieldType || '',
-        values: fieldItems
-      });
+      record.addField(fieldLabel || fieldType || '', fieldItems);
     });
 
     // Download the images
-    for (const image of record.images) {
+    for (const image of record.getImages()) {
       try {
         await this.downloadFile(image.url);
       } catch (e) {

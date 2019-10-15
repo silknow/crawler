@@ -5,6 +5,7 @@ const cheerio = require('cheerio');
 const querystring = require('querystring');
 
 const BaseCrawler = require('../base');
+const Record = require('../record');
 
 class MtmadCrawler extends BaseCrawler {
   constructor(argv) {
@@ -151,23 +152,18 @@ class MtmadCrawler extends BaseCrawler {
       return Promise.reject(err);
     }
 
-    const record = {
-      id: recordNumber,
-      url: recordUrl,
-      fields: [],
-      images: []
-    };
+    const record = new Record(recordNumber, recordUrl);
 
     const $ = cheerio.load(response.data);
 
     // Title
-    record.fields.push({
-      label: 'title',
-      value: $('.sp_Titre')
+    record.addField(
+      'title',
+      $('.sp_Titre')
         .first()
         .text()
         .trim()
-    });
+    );
 
     // Details
     const details = [];
@@ -181,10 +177,7 @@ class MtmadCrawler extends BaseCrawler {
           .trim()
       );
     });
-    record.fields.push({
-      label: 'details',
-      values: details
-    });
+    record.addField('details', details);
 
     // Description
     // Convert <br> tags into newlines for the description
@@ -192,13 +185,13 @@ class MtmadCrawler extends BaseCrawler {
       .first()
       .find('br')
       .replaceWith('\n');
-    record.fields.push({
-      label: 'description',
-      value: $('.sp_Description .sp_Enum')
+    record.addField(
+      'description',
+      $('.sp_Description .sp_Enum')
         .first()
         .text()
         .trim()
-    });
+    );
 
     // Bibliography
     $('.sp_Bibliography .sp_Enum').each((i, elem) => {
@@ -219,17 +212,14 @@ class MtmadCrawler extends BaseCrawler {
           .text()
           .trim();
 
-      record.fields.push({
-        label,
-        value
-      });
+      record.addField(label, value);
     });
 
     // Images
     $('.sp_InnerImg img').each((i, elem) => {
       const imageUrl = $(elem).attr('src');
       const imageTitle = $(elem).attr('title');
-      record.images.push({
+      record.addImage({
         id: '',
         url: imageUrl,
         title: imageTitle
@@ -237,7 +227,7 @@ class MtmadCrawler extends BaseCrawler {
     });
 
     // Download the images
-    for (const image of record.images) {
+    for (const image of record.getImages()) {
       try {
         await this.downloadFile(image.url);
       } catch (e) {
