@@ -5,6 +5,7 @@ const cheerio = require('cheerio');
 const url = require('url');
 
 const BaseCrawler = require('../base');
+const Record = require('../record');
 
 class RisdMuseumCrawler extends BaseCrawler {
   constructor(argv) {
@@ -45,7 +46,16 @@ class RisdMuseumCrawler extends BaseCrawler {
 
     for (const { recordNumber, recordUrl } of records) {
       try {
-        await this.downloadRecord(recordNumber, recordUrl);
+        const record = await this.downloadRecord(recordNumber, recordUrl);
+
+        // Download the images
+        for (const image of record.getImages()) {
+          try {
+            await this.downloadFile(image.url);
+          } catch (e) {
+            debug('Could not download image %s: %s', image.url, e.message);
+          }
+        }
       } catch (e) {
         debug('Could not download record:', e);
       }
@@ -61,7 +71,8 @@ class RisdMuseumCrawler extends BaseCrawler {
   async downloadRecord(recordNumber, recordUrl) {
     if (this.recordExists(recordNumber)) {
       debug('Skipping existing record %s', recordNumber);
-      return Promise.resolve();
+      const record = await this.getRecord(recordNumber);
+      return Promise.resolve(record);
     }
 
     // Download record
@@ -73,14 +84,9 @@ class RisdMuseumCrawler extends BaseCrawler {
       return Promise.reject(err);
     }
 
-    const record = {
-      id: recordNumber,
-      url: recordUrl,
-      fields: [],
-      publications: [],
-      exhibitions: [],
-      images: []
-    };
+    const record = new Record(recordNumber, recordUrl);
+    record.publications = [];
+    record.exhibitions = [];
 
     const $ = cheerio.load(response.data);
 
@@ -93,7 +99,7 @@ class RisdMuseumCrawler extends BaseCrawler {
         recordNumber,
         medium
       );
-      return Promise.resolve();
+      return Promise.resolve(record);
     }
 
     // Fields
@@ -114,13 +120,12 @@ class RisdMuseumCrawler extends BaseCrawler {
             .first()
             .text()
             .trim();
-          values.push(value);
+          if (value.length > 0) {
+            values.push(value);
+          }
         });
 
-        record.fields.push({
-          label,
-          values
-        });
+        record.addField(label, values);
       } else {
         const value = $(item)
           .find('.object__info--content')
@@ -128,10 +133,7 @@ class RisdMuseumCrawler extends BaseCrawler {
           .text()
           .trim();
 
-        record.fields.push({
-          label,
-          value
-        });
+        record.addField(label, value);
       }
     });
 
@@ -155,10 +157,7 @@ class RisdMuseumCrawler extends BaseCrawler {
             .text()
             .trim();
 
-          record.fields.push({
-            label,
-            value
-          });
+          record.addField(label, value);
         } else if ($dd.find('.term__list').length > 0) {
           const values = [];
           const terms = $dd.find('.term__item');
@@ -172,10 +171,7 @@ class RisdMuseumCrawler extends BaseCrawler {
             values.push(value);
           });
 
-          record.fields.push({
-            label,
-            values
-          });
+          record.addField(label, values);
         }
       }
     });
@@ -236,45 +232,77 @@ class RisdMuseumCrawler extends BaseCrawler {
       }
     );
 
+    // Related
+    const relatedObjects = [];
+    $('.content__section--related-objects .node--type-collection-object').each(
+      (i, elem) => {
+        const linkUrl = url.resolve(
+          'https://risdmuseum.org/',
+          $(elem).attr('about')
+        );
+        const id = $(elem).attr('data-history-node-id');
+
+        relatedObjects.push({
+          id,
+          url: linkUrl
+        });
+      }
+    );
+    record.addField('relatedObjects', relatedObjects.map(r => r.id));
+
     // Use
-    record.fields.push({
-      label: 'Use',
-      value: $('.content__section--use .node__content__section__info')
+    record.addField(
+      'Use',
+      $('.content__section--use .node__content__section__info')
         .first()
         .text()
         .trim()
-    });
+    );
 
     // Feedback
-    record.fields.push({
-      label: 'Use',
-      value: $('.content__section--feedback .node__content__section__info')
+    record.addField(
+      'Use',
+      $('.content__section--feedback .node__content__section__info')
         .first()
         .text()
         .trim()
-    });
+    );
 
     // Images
     $('.content__section--image .carousel-item').each((i, elem) => {
       const imageUrl = $(elem).attr('data-full-url');
 
-      record.images.push({
+      record.addImage({
         id: '',
         url: new url.URL(imageUrl, 'https://risdmuseum.org/').href
       });
     });
 
-    // Download the images
-    for (const image of record.images) {
+    // Save the record
+    await this.writeRecord(record);
+
+    // Download related objects records
+    for (const relatedData of relatedObjects) {
       try {
-        await this.downloadFile(image.url);
+        const relatedRecord = await this.downloadRecord(
+          relatedData.id,
+          relatedData.url
+        );
+
+        // Download the images
+        for (const image of relatedRecord.getImages()) {
+          try {
+            await this.downloadFile(image.url);
+          } catch (e) {
+            debug('Could not download image %s: %s', image.url, e.message);
+          }
+        }
       } catch (e) {
-        debug('Could not download image %s: %s', image.url, e.message);
+        debug('Could not download record:', e);
       }
     }
 
-    // Save the record
-    return this.writeRecord(record);
+    return Promise.resolve(record);
   }
 }
 
