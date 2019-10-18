@@ -37,7 +37,7 @@ class MetMuseumCrawler extends BaseCrawler {
             'https://images.metmuseum.org/CRDImages/',
             image.url
           );
-          this.downloadImage(imageUrl);
+          await this.downloadImage(imageUrl);
         }
       } catch (e) {
         debug('Could not download record:', e);
