@@ -199,7 +199,8 @@ class MetMuseumCrawler extends BaseCrawler {
       if (relatedNumber) {
         relatedObjects.push({
           id: relatedNumber,
-          url: linkUrl
+          url: linkUrl,
+          isRelated: true
         });
       }
     });
@@ -208,21 +209,24 @@ class MetMuseumCrawler extends BaseCrawler {
     // Save the record
     await this.writeRecord(record);
 
-    // Download related objects records
-    for (const relatedData of relatedObjects) {
-      try {
-        const relatedRecord = await this.downloadRecord(relatedData);
+    // Download related objects records (only for main records)
+    // If the current record is already related to a main one then we don't download its related records
+    if (!recordData.isRelated) {
+      for (const relatedData of relatedObjects) {
+        try {
+          const relatedRecord = await this.downloadRecord(relatedData);
 
-        // Download the images
-        for (const image of relatedRecord.getImages()) {
-          const imageUrl = url.resolve(
-            'https://images.metmuseum.org/CRDImages/',
-            image.url
-          );
-          await this.downloadImage(imageUrl);
+          // Download the images
+          for (const image of relatedRecord.getImages()) {
+            const imageUrl = url.resolve(
+              'https://images.metmuseum.org/CRDImages/',
+              image.url
+            );
+            await this.downloadImage(imageUrl);
+          }
+        } catch (e) {
+          debug('Could not download related record:', e);
         }
-      } catch (e) {
-        debug('Could not download related record:', e);
       }
     }
 
