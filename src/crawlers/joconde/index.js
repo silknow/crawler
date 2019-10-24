@@ -1,7 +1,6 @@
 const debug = require('debug')('silknow:crawlers:joconde');
 const axios = require('axios');
 const axiosRetry = require('axios-retry');
-const cheerio = require('cheerio');
 const url = require('url');
 
 const BaseCrawler = require('../base');
@@ -16,153 +15,118 @@ class JocondeCrawler extends BaseCrawler {
       retryDelay: axiosRetry.exponentialDelay
     });
 
-    this.request.method = 'get';
-    this.request.responseType = 'arraybuffer';
-    this.request.url = 'http://www2.culture.gouv.fr/public/mistral/joconde_fr';
-    this.request.params = {
-      ACTION: 'RETROUVER_TITLE',
-      GRP: 0,
-      SPEC: 5,
-      SYN: 1,
-      IMLY: 'CHECKED',
-      MAX1: 1,
-      MAX2: 1,
-      MAX3: 200,
-      REQ:
-        "(('TEXTILE') :DOMN  ET  (('SOIE') :TECH  ET  (('RUBAN') :DENO ))) ET ('$FILLED$' :VIDEO)",
-      DOM: 'All',
-      USRNAME: 'nobody',
-      USRPWD: '4%24%2534P'
+    this.request.method = 'post';
+    this.request.headers = {
+      'Content-Type': 'application/x-ndjson'
     };
-    this.paging.page = 'GRP';
-    this.paging.limit = 'MAX3';
-    this.limit = 200;
+    this.request.url =
+      'https://api.pop.culture.gouv.fr/search/joconde/_msearch';
+
+    this.currentOffset = 0;
+    this.limit = 25;
+    this.updateRequestData();
+  }
+
+  updateRequestData() {
+    this.request.data = `${JSON.stringify({
+      preference: 'res'
+    })}\n${JSON.stringify({
+      query: {
+        bool: {
+          must: [
+            {
+              bool: {
+                must: [
+                  { wildcard: { 'DOMN.keyword': '*textile*' } },
+                  { wildcard: { 'TECH.keyword': '*soie*' } },
+                  { wildcard: { 'DENO.keyword': '*ruban*' } },
+                  { term: { 'CONTIENT_IMAGE.keyword': 'oui' } }
+                ],
+                must_not: [],
+                should: [],
+                should_not: []
+              }
+            }
+          ]
+        }
+      },
+      size: this.limit,
+      from: this.currentOffset
+    })}\n`;
   }
 
   async onSearchResult(result) {
-    const $ = cheerio.load(result.toString('latin1'));
-
-    const resultsCount = parseInt(
-      $('#theme .soustitre')
-        .first()
-        .text(),
-      10
-    );
+    const resultsCount = result.responses[0].hits.total;
     this.totalPages = Math.ceil(resultsCount / this.limit);
 
     const recordsData = [];
 
-    $('#theme table[valign="TOP"]').each((i, elem) => {
-      let recordNumber = '';
-
-      $(elem)
-        .find('tr')
-        .each((j, tr) => {
-          if (
-            $(tr)
-              .find('.soustitre')
-              .first()
-              .text()
-              .trim() === "Numéro d'inventaire"
-          ) {
-            const value = $(tr)
-              .find('.resultat')
-              .first()
-              .text(); // eg. "95.71.72 ; Tg 72 (n° d'étude) ; 95-71-72 T (ancien numéro)"
-            recordNumber = value
-              .split(';')
-              .shift()
-              .trim(); // eg. "95.71.72"
-          }
-        });
-
-      if (recordNumber.length > 0) {
-        const recordUrl = url.resolve(
-          'http://www2.culture.gouv.fr/',
-          $(elem)
-            .find('tr:last-child a')
-            .last()
-            .attr('href')
-        );
-
-        recordsData.push({
-          id: recordNumber,
-          url: recordUrl
-        });
-      }
+    result.responses[0].hits.hits.forEach(hit => {
+      // eslint-disable-next-line no-underscore-dangle
+      recordsData.push(hit._source);
     });
 
     for (const recordData of recordsData) {
       try {
-        await this.downloadRecord(recordData.id, recordData.url);
+        await this.downloadRecord(recordData);
       } catch (e) {
         debug('Could not download record:', e);
       }
     }
 
-    this.currentOffset += $('#theme table[valign="TOP"]').length;
+    this.currentOffset += result.responses[0].hits.hits.length;
+
+    // Make sure to update the offset in the request parameters
+    this.updateRequestData();
 
     return Promise.resolve();
   }
 
-  async downloadRecord(recordNumber, recordUrl) {
+  async downloadRecord(recordData) {
+    const recordNumber = recordData.REF;
+
     if (this.recordExists(recordNumber)) {
       debug('Skipping existing record %s', recordNumber);
       return Promise.resolve();
     }
 
-    // Download record
-    debug('Downloading record %s', recordNumber);
-    let response;
-    try {
-      response = await axios.get(recordUrl, {
-        responseType: 'arraybuffer'
-      });
-    } catch (err) {
-      return Promise.reject(err);
-    }
-
-    const record = new Record(recordNumber);
-
-    const $ = cheerio.load(response.data.toString('latin1'));
-
-    // Details
-    $('#theme table[valign="TOP"] td:not(:first-child) table tr').each(
-      (i, elem) => {
-        const label = $(elem)
-          .find('.soustitre')
-          .first()
-          .text()
-          .trim();
-
-        // Convert <br> tags to '\n'
-        $(elem)
-          .find('.resultat')
-          .first()
-          .find('br')
-          .replaceWith('\n');
-
-        const value = $(elem)
-          .find('.resultat')
-          .first()
-          .text()
-          .trim();
-
-        if (label.length > 0 || value.length > 0) {
-          record.addField(label, value);
-        }
-      }
+    const recordUrl = url.resolve(
+      'https://www.pop.culture.gouv.fr/notice/joconde/',
+      recordData.REF
     );
 
-    // Images
-    $('#theme table[valign="TOP"] a img').each((i, elem) => {
-      const imageUrl = $(elem)
-        .parent()
-        .attr('href');
+    const record = new Record(recordNumber, recordUrl);
 
+    // Add properties as fields
+    Object.keys(recordData).forEach(key => {
+      const value = recordData[key];
+      if (typeof value !== 'object') {
+        record.addField(key, recordData[key]);
+      } else if (Array.isArray(value)) {
+        value.forEach(subValue => {
+          if (typeof subValue !== 'object') {
+            record.addField(key, [subValue]);
+          }
+        });
+      }
+    });
+
+    // Add geolocation property as a field
+    if (recordData.POP_COORDONNEES) {
+      const { lat, lon } = recordData.POP_COORDONNEES;
+      if (lat && lon) {
+        record.addField('POP_COORDONNEES', [lon, lat]);
+      }
+    }
+
+    // Images
+    recordData.IMG.forEach(imageUrlPart => {
       record.addImage({
         id: '',
-        url: url.resolve('http://www2.culture.gouv.fr/', imageUrl)
+        url: url.resolve(
+          'https://s3.eu-west-3.amazonaws.com/pop-phototeque/',
+          imageUrlPart
+        )
       });
     });
 
