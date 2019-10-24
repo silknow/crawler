@@ -30,7 +30,15 @@ class Record {
   }
 
   addImage(image) {
+    if (!image) {
+      return false;
+    }
+    // Do not add duplicates
+    if (image.url && this.images.some(img => img.url === image.url)) {
+      return false;
+    }
     this.images.push(image);
+    return true;
   }
 
   getImages() {

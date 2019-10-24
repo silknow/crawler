@@ -1,10 +1,7 @@
 const debug = require('debug')('silknow:crawlers:mfa-boston');
 const axios = require('axios');
 const axiosRetry = require('axios-retry');
-const camelCase = require('camelcase');
 const cheerio = require('cheerio');
-const path = require('path');
-const url = require('url');
 
 const BaseCrawler = require('../base');
 const Record = require('../record');
@@ -19,30 +16,22 @@ class MfaBostonCrawler extends BaseCrawler {
     });
 
     this.request.url =
-      'https://www.mfa.org/collections/search?search_api_views_fulltext=&title=&culture=&artist=&creditline=&accession=&provenance=&medium=&sort=search_api_aggregation_4&order=asc&f%5B0%5D=field_checkbox%3A1&f%5B1%5D=field_collections%3A5&f%5B2%5D=field_collections%3A10';
+      'https://collections.mfa.org/search/Objects/classifications%3ATextiles%3BimageExistence%3Atrue%3BcollectionTerms%3AEurope%2CTextiles%20and%20Fashion%20Arts/*/list';
     this.paging.page = 'page';
+    this.limit = 12;
   }
 
   async onSearchResult(result) {
     const $ = cheerio.load(result);
 
-    if ($('.pager-last').length > 0) {
-      this.totalPages = parseInt(
-        $('.pager-last')
-          .first()
-          .text()
-          .trim(),
-        10
-      );
+    if ($('#pageField').length > 0) {
+      this.totalPages = parseInt($('#pageField').attr('max'), 10);
     }
 
     const records = [];
-    $('.view-id-search_objects .views-row > a').each((i, elem) => {
-      const recordUrl = $(elem).attr('href');
-      const recordNumber = path
-        .basename(url.parse(recordUrl).pathname)
-        .split('-')
-        .pop();
+    $('#tlistview .list-item').each((i, elem) => {
+      const recordNumber = $(elem).attr('data-emuseum-id');
+      const recordUrl = `https://collections.mfa.org/objects/${recordNumber}`;
       records.push({ recordNumber, recordUrl });
     });
 
@@ -54,7 +43,7 @@ class MfaBostonCrawler extends BaseCrawler {
       }
     }
 
-    this.currentOffset += $('.view-id-search_objects .views-row').length;
+    this.currentOffset += $('#tlistview .list-item').length;
 
     return Promise.resolve();
   }
@@ -78,68 +67,60 @@ class MfaBostonCrawler extends BaseCrawler {
 
     const $ = cheerio.load(response.data);
 
-    // Item details (in first grid)
-    const grid = $('.node-object .content .grid-6').first();
-    record.addField(
-      'title',
-      $(grid)
-        .find('h2')
-        .first()
-        .text()
-        .trim()
-    );
-    record.addField(
-      'subtitle',
-      $(grid)
-        .find('h2')
-        .next('h3')
-        .text()
-        .trim()
-    );
-    record.addField(
-      'teaser',
-      $(grid)
-        .find('h2')
-        .nextAll('hr')
-        .first()
-        .prev('p')
-        .text()
-        .trim()
-    );
-
-    // Description (in second grid)
-    record.addField(
-      'description',
-      $('.node-object .content .grid-6 .body')
-        .first()
-        .text()
-        .trim()
-    );
-
-    // Fields (in both grids)
-    $('.node-object .content .grid-6')
-      .find('h3, h4')
-      .each((i, elem) => {
-        const text = $(elem)
+    // Fields (title, medium/techniques, dimensions, credit line, ...)
+    $('.detailField').each((i, elem) => {
+      if ($(elem).find('.detailFieldLabel').length > 0) {
+        const label = $(elem)
+          .find('.detailFieldLabel')
+          .first()
           .text()
           .trim();
-
         const value = $(elem)
-          .next('p')
+          .find('.detailFieldValue')
+          .first()
           .text()
           .trim();
-
-        const label = camelCase(text);
         record.addField(label, value);
-      });
+      } else {
+        const label = $(elem)
+          .attr('class')
+          .split(' ')
+          .filter(c => c.includes('Field') && c !== 'detailField')
+          .pop();
+        const value = $(elem)
+          .text()
+          .trim();
+        record.addField(label, value);
+      }
+    });
 
-    // Images (in main slider)
-    $(
-      '.node-object .content .slider .slideshow > .carousel-content .object img'
-    ).each((i, elem) => {
-      const imageUrl = $(elem).attr('src');
+    // Primary images
+    $('#detailView img').each((i, elem) => {
+      const link = $(elem).attr('src');
+      const idMatch = link.match(/\/internal\/media\/dispatcher\/([0-9]+)\//);
+      const image = {};
+      if (idMatch) {
+        image.id = idMatch[1];
+        image.url = `https://collections.mfa.org/internal/media/dispatcher/${
+          image.id
+        }/resize%3Aformat%3Dfull`;
+      }
+      image.title = $(elem).attr('title');
+      image.description = $(elem).attr('alt');
+      if (image.url) {
+        record.addImage(image);
+      }
+    });
+
+    // Secondary images
+    $('.secondarymedia-item').each((i, elem) => {
+      const imageId = $(elem)
+        .find('> a')
+        .first()
+        .attr('data-media-id');
+      const imageUrl = `https://collections.mfa.org/internal/media/dispatcher/${imageId}/resize%3Aformat%3Dfull`;
       record.addImage({
-        id: '',
+        id: imageId,
         url: imageUrl
       });
     });
@@ -147,7 +128,7 @@ class MfaBostonCrawler extends BaseCrawler {
     // Download the images
     for (const image of record.getImages()) {
       try {
-        await this.downloadFile(image.url);
+        await this.downloadFile(image.url, `${image.id}.jpg`);
       } catch (e) {
         debug('Could not download image %s: %s', image.url, e.message);
       }
