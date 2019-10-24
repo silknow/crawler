@@ -1,6 +1,7 @@
 const { argv } = require('yargs');
 
 const crawlers = require('./crawlers');
+const FieldsLister = require('./fields-lister');
 
 process.on('unhandledRejection', err => {
   throw err;
@@ -29,9 +30,15 @@ if (!targetCrawlers.length) {
   (async () => {
     for (const Crawler of targetCrawlers) {
       try {
-        const crawler = new Crawler(argv);
-        console.log(`Running crawler "${crawler.constructor.id}"`);
-        await crawler.start();
+        if (argv.listFields) {
+          // List unique fields in already crawled data
+          await FieldsLister.list(Crawler.id);
+        } else {
+          // Crawl
+          const crawler = new Crawler(argv);
+          console.log(`Running crawler "${crawler.constructor.id}"`);
+          await crawler.start();
+        }
       } catch (err) {
         console.error('Error:', err);
       }
