@@ -24,41 +24,41 @@ class JocondeCrawler extends BaseCrawler {
 
     this.currentOffset = 0;
     this.limit = 25;
-    this.updateRequestData();
+    this.baseQuery = {
+      bool: {
+        must: [
+          {
+            bool: {
+              must: [
+                { wildcard: { 'DOMN.keyword': '*textile*' } },
+                { wildcard: { 'TECH.keyword': '*soie*' } },
+                { wildcard: { 'DENO.keyword': '*ruban*' } },
+                { term: { 'CONTIENT_IMAGE.keyword': 'oui' } }
+              ],
+              must_not: [],
+              should: [],
+              should_not: []
+            }
+          }
+        ]
+      }
+    };
+    this.updateRequestData(this.request);
+
+    this.relatedInvNumbersCache = [];
   }
 
-  updateRequestData() {
-    this.request.data = `${JSON.stringify({
+  updateRequestData(request) {
+    request.data = `${JSON.stringify({
       preference: 'res'
     })}\n${JSON.stringify({
-      query: {
-        bool: {
-          must: [
-            {
-              bool: {
-                must: [
-                  { wildcard: { 'DOMN.keyword': '*textile*' } },
-                  { wildcard: { 'TECH.keyword': '*soie*' } },
-                  { wildcard: { 'DENO.keyword': '*ruban*' } },
-                  { term: { 'CONTIENT_IMAGE.keyword': 'oui' } }
-                ],
-                must_not: [],
-                should: [],
-                should_not: []
-              }
-            }
-          ]
-        }
-      },
+      query: this.baseQuery,
       size: this.limit,
       from: this.currentOffset
     })}\n`;
   }
 
-  async onSearchResult(result) {
-    const resultsCount = result.responses[0].hits.total;
-    this.totalPages = Math.ceil(resultsCount / this.limit);
-
+  async downloadRecordsFromResult(result, isRelated) {
     const recordsData = [];
 
     result.responses[0].hits.hits.forEach(hit => {
@@ -66,28 +66,79 @@ class JocondeCrawler extends BaseCrawler {
       recordsData.push(hit._source);
     });
 
+    const downloadedRecords = [];
     for (const recordData of recordsData) {
       try {
-        await this.downloadRecord(recordData);
+        const record = await this.downloadRecord(recordData, isRelated);
+        if (record) {
+          downloadedRecords.push(record);
+        }
       } catch (e) {
         debug('Could not download record:', e);
       }
     }
 
+    return Promise.resolve(downloadedRecords);
+  }
+
+  async onSearchResult(result) {
+    const resultsCount = result.responses[0].hits.total;
+    this.totalPages = Math.ceil(resultsCount / this.limit);
+
+    await this.downloadRecordsFromResult(result);
+
     this.currentOffset += result.responses[0].hits.hits.length;
 
     // Make sure to update the offset in the request parameters
-    this.updateRequestData();
+    this.updateRequestData(this.request);
 
     return Promise.resolve();
   }
 
-  async downloadRecord(recordData) {
+  async downloadRelatedRecord(invNumber) {
+    const req = { ...this.request };
+    req.data = `${JSON.stringify({
+      preference: 'res'
+    })}\n${JSON.stringify({
+      query: {
+        bool: {
+          must: [
+            {
+              bool: {
+                must: [],
+                must_not: [],
+                should: [
+                  { term: { 'INV.keyword': invNumber } },
+                  { wildcard: { 'INV.keyword': `*${invNumber} ;*` } }
+                ],
+                should_not: []
+              }
+            }
+          ]
+        }
+      },
+      size: 1,
+      from: 0
+    })}\n`;
+
+    let response;
+    try {
+      response = await axios(req);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+
+    const result = response.data;
+    return this.downloadRecordsFromResult(result, true);
+  }
+
+  async downloadRecord(recordData, isRelated = false) {
     const recordNumber = recordData.REF;
 
     if (this.recordExists(recordNumber)) {
       debug('Skipping existing record %s', recordNumber);
-      return Promise.resolve();
+      const record = await this.getRecord(recordNumber);
+      return Promise.resolve(record);
     }
 
     const recordUrl = url.resolve(
@@ -139,8 +190,29 @@ class JocondeCrawler extends BaseCrawler {
       }
     }
 
+    // Download related records (only if current record isn't already a related record)
+    if (recordData.HIST && !isRelated) {
+      const relatedInvNumbers =
+        recordData.HIST.match(/[0-9]+\.[0-9]+\.[0-9]+/g) || [];
+      for (const invNumber of relatedInvNumbers) {
+        if (!this.relatedInvNumbersCache.includes(invNumber)) {
+          debug('Found related record with inventory number %s', invNumber);
+          this.relatedInvNumbersCache.push(invNumber);
+
+          const relatedRecords = await this.downloadRelatedRecord(invNumber);
+          if (Array.isArray(relatedRecords)) {
+            relatedRecords.forEach(r => {
+              record.addField('relatedObjects', [r.id]);
+            });
+          }
+        }
+      }
+    }
+
     // Save the record
-    return this.writeRecord(record);
+    await this.writeRecord(record);
+
+    return Promise.resolve(record);
   }
 }
 
