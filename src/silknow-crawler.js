@@ -32,7 +32,7 @@ if (!targetCrawlers.length) {
       try {
         if (argv.listFields) {
           // List unique fields in already crawled data
-          await FieldsLister.list(Crawler.id);
+          await FieldsLister.list(Crawler.id, argv);
         } else {
           // Crawl
           const crawler = new Crawler(argv);
