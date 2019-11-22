@@ -208,10 +208,10 @@ class CeresMcuCrawler extends BaseCrawler {
     const sanitizedRecordNumber = filenamify(recordNumber);
     for (const [index, image] of record.images.entries()) {
       try {
-        await this.downloadFile(
-          image.url,
-          `${sanitizedRecordNumber}_${index}.jpg`
-        );
+        const localFilename = `${sanitizedRecordNumber}_${index}.jpg`;
+
+        await this.downloadFile(image.url, localFilename);
+        image.localFilename = localFilename;
       } catch (e) {
         debug('Could not download image %s: %s', image.url, e.message);
       }
