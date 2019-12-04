@@ -42,7 +42,7 @@ class Utils {
             response.data.pipe(fs.createWriteStream(filePath));
 
             response.data.on('end', () => {
-              resolve();
+              resolve(filePath);
             });
 
             response.data.on('error', err => {

@@ -2,7 +2,6 @@ const debug = require('debug')('silknow:crawlers:ceres-mcu');
 const axios = require('axios');
 const axiosRetry = require('axios-retry');
 const cheerio = require('cheerio');
-const filenamify = require('filenamify');
 const querystring = require('querystring');
 
 const BaseCrawler = require('../base');
@@ -205,17 +204,7 @@ class CeresMcuCrawler extends BaseCrawler {
     });
 
     // Download the images
-    const sanitizedRecordNumber = filenamify(recordNumber);
-    for (const [index, image] of record.images.entries()) {
-      try {
-        const localFilename = `${sanitizedRecordNumber}_${index}.jpg`;
-
-        await this.downloadFile(image.url, localFilename);
-        image.localFilename = localFilename;
-      } catch (e) {
-        debug('Could not download image %s: %s', image.url, e.message);
-      }
-    }
+    await this.downloadRecordImages(record);
 
     // Save the record
     return this.writeRecord(record);

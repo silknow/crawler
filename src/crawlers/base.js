@@ -86,6 +86,7 @@ class BaseCrawler {
     return this.downloadNextPage();
   }
 
+  // Downloads a file from an URL and returns the file path */
   async downloadFile(fileUrl, fileName) {
     // Skip if --no-files is set
     if (this.argv.files === false) {
@@ -105,7 +106,7 @@ class BaseCrawler {
     // Check if file already exists
     if (fs.existsSync(filePath)) {
       debug('Skipping existing file %s', fileUrl);
-      return Promise.resolve();
+      return Promise.resolve(filePath);
     }
 
     debug('Downloading file %s as %s', fileUrl, fileName);
@@ -165,6 +166,20 @@ class BaseCrawler {
         else resolve();
       });
     });
+  }
+
+  async downloadRecordImages(record) {
+    const sanitizedRecordNumber = filenamify(record.getId());
+    for (const [index, image] of record.getImages().entries()) {
+      try {
+        const localFilename = `${sanitizedRecordNumber}_${index}.jpg`;
+
+        await this.downloadFile(image.url, localFilename);
+        image.localFilename = localFilename;
+      } catch (e) {
+        debug('Could not download image %s: %s', image.url, e.message);
+      }
+    }
   }
 }
 

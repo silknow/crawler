@@ -227,13 +227,7 @@ class MtmadCrawler extends BaseCrawler {
     });
 
     // Download the images
-    for (const image of record.getImages()) {
-      try {
-        await this.downloadFile(image.url);
-      } catch (e) {
-        debug('Could not download image %s: %s', image.url, e.message);
-      }
-    }
+    await this.downloadRecordImages(record);
 
     // Save the record
     return this.writeRecord(record);
