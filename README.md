@@ -39,7 +39,11 @@ Crawled JSON structure of each museum can be found [here](https://github.com/sil
 
 ### Notes about UNIPA
 
-The UNIPA crawler requires the raw data as CSV files. The data has to be stored in `data/unipa/resources`. The structure is as follow:
+The UNIPA crawler requires the raw data as CSV files. The data has to be stored in `data/unipa/resources`.
+
+Link to the dataset spreadsheets: https://drive.google.com/drive/folders/1gJYv1CbwqknUORdMhPU-BUwr-6lkZ5ki
+
+The structure is as follow:
 
 ```csv
 fieldLabel,fieldValue
