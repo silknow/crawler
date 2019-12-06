@@ -83,18 +83,32 @@ class MetMuseumCrawler extends BaseCrawler {
     const record = new Record(recordNumber, recordUrl);
 
     // Images
-    $('.met-carousel__item__thumbnail').each((i, elem) => {
+    if ($('.met-carousel__item__thumbnail').length === 0) {
+      // No carousel, only a single picture
+      // The original image URL is in the download button
+      const imageUrl = $('.the-artwork__meta .gtm__download__image')
+        .first()
+        .attr('href');
       const image = {
         id: '',
-        url: url.resolve(
-          'https://images.metmuseum.org/CRDImages/',
-          $(elem).attr('data-superjumboimage')
-        ),
-        title: $(elem).attr('title'),
-        description: $(elem).attr('alt')
+        url: url.resolve('https://images.metmuseum.org/CRDImages/', imageUrl)
       };
       record.addImage(image);
-    });
+    } else {
+      // Carousel, loop through all photo and get the original image URL of each photo
+      $('.met-carousel__item__thumbnail').each((i, elem) => {
+        const image = {
+          id: '',
+          url: url.resolve(
+            'https://images.metmuseum.org/CRDImages/',
+            $(elem).attr('data-superjumboimage')
+          ),
+          title: $(elem).attr('title'),
+          description: $(elem).attr('alt')
+        };
+        record.addImage(image);
+      });
+    }
 
     // Add details fields from the web page
     $('.artwork__tombstone--row').each((i, elem) => {
