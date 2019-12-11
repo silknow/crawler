@@ -134,11 +134,50 @@ class MetMuseumCrawler extends BaseCrawler {
         .trim()
     );
 
+    // Description
+    record.addField(
+      'description',
+      $('.artwork__intro__desc')
+        .first()
+        .text()
+        .trim()
+    );
+
     // Image license
     const $license = $('.artwork__access span a').first();
     if ($license.length > 0) {
       record.addField('imagesRightsLink', $license.attr('href'));
       record.addField('imagesRightsText', $license.text());
+    }
+
+    // Artwork location
+    record.addField(
+      'galleryInformation',
+      $('.artwork__location')
+        .first()
+        .text()
+        .trim()
+    );
+    record.addField(
+      'galleryInformationMessage',
+      $('.artwork__location--message')
+        .first()
+        .text()
+        .trim()
+    );
+    record.addField(
+      'galleryInformationGallery',
+      $('.artwork__location--gallery')
+        .first()
+        .text()
+        .trim()
+    );
+    const $galleryInformationLink = $('.artwork__location--gallery a').first();
+    if ($galleryInformationLink.length > 0) {
+      record.addField(
+        'galleryInformationLink',
+        $galleryInformationLink.attr('href')
+      );
     }
 
     // Facets
