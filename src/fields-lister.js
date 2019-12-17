@@ -32,9 +32,7 @@ module.exports = {
           }
           if (fileFields.filter(f => f.label === field.label).length > 0) {
             console.error(
-              `Field "${
-                field.label
-              }" appears more than once for file ${recordFile}, this should not happen!`
+              `Field "${field.label}" appears more than once for file ${recordFile}, this should not happen!`
             );
             return;
           }

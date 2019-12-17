@@ -7,6 +7,11 @@ const url = require('url');
 const BaseCrawler = require('../base');
 const Record = require('../record');
 
+function safeUrlResolve(from, to) {
+  if (!to) return null;
+  return url.resolve(from, to);
+}
+
 class MetMuseumCrawler extends BaseCrawler {
   constructor(argv) {
     super(argv);
@@ -33,7 +38,7 @@ class MetMuseumCrawler extends BaseCrawler {
 
         // Download the images
         for (const image of record.getImages()) {
-          const imageUrl = url.resolve(
+          const imageUrl = safeUrlResolve(
             'https://images.metmuseum.org/CRDImages/',
             image.url
           );
@@ -50,7 +55,7 @@ class MetMuseumCrawler extends BaseCrawler {
   }
 
   async downloadRecord(recordData) {
-    const recordUrl = url.resolve(
+    const recordUrl = safeUrlResolve(
       'https://www.metmuseum.org/',
       url.parse(recordData.url).pathname
     );
@@ -91,7 +96,7 @@ class MetMuseumCrawler extends BaseCrawler {
         .attr('href');
       const image = {
         id: '',
-        url: url.resolve('https://images.metmuseum.org/CRDImages/', imageUrl)
+        url: safeUrlResolve('https://images.metmuseum.org/CRDImages/', imageUrl)
       };
       record.addImage(image);
     } else {
@@ -99,7 +104,7 @@ class MetMuseumCrawler extends BaseCrawler {
       $('.met-carousel__item__thumbnail').each((i, elem) => {
         const image = {
           id: '',
-          url: url.resolve(
+          url: safeUrlResolve(
             'https://images.metmuseum.org/CRDImages/',
             $(elem).attr('data-superjumboimage')
           ),
@@ -244,7 +249,7 @@ class MetMuseumCrawler extends BaseCrawler {
       const $link = $(elem)
         .find('.card__title a')
         .first();
-      const linkUrl = url.resolve(
+      const linkUrl = safeUrlResolve(
         'https://www.metmuseum.org/',
         $link.attr('href')
       );
@@ -257,7 +262,10 @@ class MetMuseumCrawler extends BaseCrawler {
         });
       }
     });
-    record.addField('relatedObjects', relatedObjects.map(r => r.id));
+    record.addField(
+      'relatedObjects',
+      relatedObjects.map(r => r.id)
+    );
 
     // Save the record
     await this.writeRecord(record);
@@ -271,7 +279,7 @@ class MetMuseumCrawler extends BaseCrawler {
 
           // Download the images
           for (const image of relatedRecord.getImages()) {
-            const imageUrl = url.resolve(
+            const imageUrl = safeUrlResolve(
               'https://images.metmuseum.org/CRDImages/',
               image.url
             );

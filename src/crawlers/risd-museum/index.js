@@ -248,7 +248,10 @@ class RisdMuseumCrawler extends BaseCrawler {
         });
       }
     );
-    record.addField('relatedObjects', relatedObjects.map(r => r.id));
+    record.addField(
+      'relatedObjects',
+      relatedObjects.map(r => r.id)
+    );
 
     // Use
     record.addField(

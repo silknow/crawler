@@ -1,6 +1,6 @@
 const debug = require('debug')('silknow:crawlers:unipa');
 const csv = require('csv');
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
 
 const BaseCrawler = require('../base');
@@ -19,29 +19,14 @@ class UnipaCrawler extends BaseCrawler {
     );
   }
 
-  start() {
-    return new Promise(async (resolve, reject) => {
-      // Create record directory path
-      try {
-        await Utils.createPath(this.resourcesPath);
-      } catch (e) {
-        reject(e);
-      }
-
-      fs.readdir(this.resourcesPath, async (err, files) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-
-        for (let i = 0; i < files.length; i += 1) {
-          const filePath = path.join(this.resourcesPath, files[i]);
-          await this.parseFile(filePath);
-        }
-
-        resolve();
-      });
-    });
+  async start() {
+    await Utils.createPath(this.resourcesPath);
+    const files = fs.readdir(this.resourcesPath);
+    return Promise.all(
+      files
+        .map(f => path.join(this.resourcesPath, f))
+        .map(filePath => this.parseFile(filePath))
+    );
   }
 
   async parseFile(filePath) {
@@ -80,11 +65,13 @@ class UnipaCrawler extends BaseCrawler {
 
       if (row[0] === 'Images (names of the images in the document)') {
         const imagesIds = row[1].split(';');
-        imagesIds.map(imageId => imageId.trim()).forEach(imageId => {
-          record.addImage({
-            id: imageId
+        imagesIds
+          .map(imageId => imageId.trim())
+          .forEach(imageId => {
+            record.addImage({
+              id: imageId
+            });
           });
-        });
       }
     });
 

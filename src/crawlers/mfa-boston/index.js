@@ -101,9 +101,7 @@ class MfaBostonCrawler extends BaseCrawler {
       const image = {};
       if (idMatch) {
         image.id = idMatch[1];
-        image.url = `https://collections.mfa.org/internal/media/dispatcher/${
-          image.id
-        }/resize%3Aformat%3Dfull`;
+        image.url = `https://collections.mfa.org/internal/media/dispatcher/${image.id}/resize%3Aformat%3Dfull`;
       }
       image.title = $(elem).attr('title');
       image.description = $(elem).attr('alt');

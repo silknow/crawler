@@ -57,9 +57,7 @@ class CeresMcuCrawler extends BaseCrawler {
     const currentPage = Math.ceil(this.currentOffset / this.limit);
 
     const nextPage = (currentPage + 1).toString();
-    this.request.data = `${
-      this.originalRequestData
-    }&page=${nextPage}&txtPageHead=${nextPage}&txtPageFoot=${nextPage}`;
+    this.request.data = `${this.originalRequestData}&page=${nextPage}&txtPageHead=${nextPage}&txtPageFoot=${nextPage}`;
 
     return super.downloadNextPage();
   }
