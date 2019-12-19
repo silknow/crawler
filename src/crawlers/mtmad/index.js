@@ -1,6 +1,4 @@
 const debug = require('debug')('silknow:crawlers:mtmad');
-const axios = require('axios');
-const axiosRetry = require('axios-retry');
 const cheerio = require('cheerio');
 const querystring = require('querystring');
 
@@ -10,11 +8,6 @@ const Record = require('../record');
 class MtmadCrawler extends BaseCrawler {
   constructor(argv) {
     super(argv);
-
-    axiosRetry(axios, {
-      retries: 10,
-      retryDelay: axiosRetry.exponentialDelay
-    });
 
     this.request.url =
       'http://www.mtmad.fr/floracci/jsp/opac/gabarits/list/list_gabarit_bien.jsp';
@@ -27,7 +20,7 @@ class MtmadCrawler extends BaseCrawler {
     // Initiate Floracci session by loading the search page and storing the cookies
     let response;
     try {
-      response = await axios.get(
+      response = await this.axios.get(
         'http://www.mtmad.fr/floracci/jsp/opac/opac_index.jsp?action=opac_search_bien_simple&only_main=true&lang=fre-FR',
         {
           withCredentials: true
@@ -68,7 +61,7 @@ class MtmadCrawler extends BaseCrawler {
 
     // Do the search query with selected filters
     try {
-      response = await axios.post(
+      response = await this.axios.post(
         'http://www.mtmad.fr/floracci/servlet/ActionFlowManager?confirm=action_confirm&forward=action_forward&action=list_gabarit_bien',
         formData,
         {
@@ -144,7 +137,7 @@ class MtmadCrawler extends BaseCrawler {
     const recordUrl = `http://www.mtmad.fr/floracci/jsp/opac/opac_index.jsp?action=view_notice&recordId=musee:MUS_BIEN:${recordNumber}&only_main=true&lang=fre-FR`;
     let response;
     try {
-      response = await axios.get(recordUrl, {
+      response = await this.axios.get(recordUrl, {
         headers: this.request.headers,
         withCredentials: true
       });

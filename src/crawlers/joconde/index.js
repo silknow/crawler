@@ -1,6 +1,4 @@
 const debug = require('debug')('silknow:crawlers:joconde');
-const axios = require('axios');
-const axiosRetry = require('axios-retry');
 const url = require('url');
 
 const BaseCrawler = require('../base');
@@ -9,11 +7,6 @@ const Record = require('../record');
 class JocondeCrawler extends BaseCrawler {
   constructor(argv) {
     super(argv);
-
-    axiosRetry(axios, {
-      retries: 10,
-      retryDelay: axiosRetry.exponentialDelay
-    });
 
     this.request.method = 'post';
     this.request.headers = {
@@ -123,7 +116,7 @@ class JocondeCrawler extends BaseCrawler {
 
     let response;
     try {
-      response = await axios(req);
+      response = await this.axios(req);
     } catch (err) {
       return Promise.reject(err);
     }

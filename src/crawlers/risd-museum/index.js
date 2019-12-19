@@ -1,6 +1,4 @@
 const debug = require('debug')('silknow:crawlers:risd-museum');
-const axios = require('axios');
-const axiosRetry = require('axios-retry');
 const cheerio = require('cheerio');
 const url = require('url');
 
@@ -10,11 +8,6 @@ const Record = require('../record');
 class RisdMuseumCrawler extends BaseCrawler {
   constructor(argv) {
     super(argv);
-
-    axiosRetry(axios, {
-      retries: 10,
-      retryDelay: axiosRetry.exponentialDelay
-    });
 
     this.request.url =
       'https://risdmuseum.org/art-design/collection?search_api_fulltext=&op=&field_type=64';
@@ -79,7 +72,7 @@ class RisdMuseumCrawler extends BaseCrawler {
     debug('Downloading record %s', recordNumber);
     let response;
     try {
-      response = await axios.get(recordUrl);
+      response = await this.axios.get(recordUrl);
     } catch (err) {
       return Promise.reject(err);
     }

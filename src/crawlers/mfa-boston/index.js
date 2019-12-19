@@ -1,6 +1,4 @@
 const debug = require('debug')('silknow:crawlers:mfa-boston');
-const axios = require('axios');
-const axiosRetry = require('axios-retry');
 const cheerio = require('cheerio');
 
 const BaseCrawler = require('../base');
@@ -9,11 +7,6 @@ const Record = require('../record');
 class MfaBostonCrawler extends BaseCrawler {
   constructor(argv) {
     super(argv);
-
-    axiosRetry(axios, {
-      retries: 10,
-      retryDelay: axiosRetry.exponentialDelay
-    });
 
     this.request.url =
       'https://collections.mfa.org/search/Objects/classifications%3ATextiles%3BimageExistence%3Atrue%3BcollectionTerms%3AEurope%2CTextiles%20and%20Fashion%20Arts/*/list';
@@ -58,7 +51,7 @@ class MfaBostonCrawler extends BaseCrawler {
     debug('Downloading record %s', recordNumber);
     let response;
     try {
-      response = await axios.get(recordUrl);
+      response = await this.axios.get(recordUrl);
     } catch (err) {
       return Promise.reject(err);
     }

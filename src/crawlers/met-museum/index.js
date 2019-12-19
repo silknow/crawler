@@ -1,6 +1,4 @@
 const debug = require('debug')('silknow:crawlers:met-museum');
-const axios = require('axios');
-const axiosRetry = require('axios-retry');
 const cheerio = require('cheerio');
 const url = require('url');
 
@@ -15,11 +13,6 @@ function safeUrlResolve(from, to) {
 class MetMuseumCrawler extends BaseCrawler {
   constructor(argv) {
     super(argv);
-
-    axiosRetry(axios, {
-      retries: 10,
-      retryDelay: axiosRetry.exponentialDelay
-    });
 
     this.request.url =
       'https://www.metmuseum.org/api/collection/collectionlisting?artist=&department=12&era=&geolocation=&material=Silk%7CTextiles&pageSize=0&showOnly=withImage&sortBy=AccessionNumber';
@@ -78,7 +71,7 @@ class MetMuseumCrawler extends BaseCrawler {
     debug('Downloading record %s', recordNumber);
     let response;
     try {
-      response = await axios.get(recordUrl);
+      response = await this.axios.get(recordUrl);
     } catch (err) {
       return Promise.reject(err);
     }

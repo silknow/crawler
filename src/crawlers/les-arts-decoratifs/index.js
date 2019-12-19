@@ -1,6 +1,4 @@
 const debug = require('debug')('silknow:crawlers:les-arts-decoratifs');
-const axios = require('axios');
-const axiosRetry = require('axios-retry');
 const cheerio = require('cheerio');
 const path = require('path');
 const url = require('url');
@@ -11,11 +9,6 @@ const Record = require('../record');
 class LesArtsDecoratifsCrawler extends BaseCrawler {
   constructor(argv) {
     super(argv);
-
-    axiosRetry(axios, {
-      retries: 10,
-      retryDelay: axiosRetry.exponentialDelay
-    });
 
     this.request.url =
       'http://collections.lesartsdecoratifs.fr/textile?f[0]=field_hasmainmedia%3AAvec%20image%28s%29';
@@ -67,7 +60,7 @@ class LesArtsDecoratifsCrawler extends BaseCrawler {
     const recordUrl = `http://collections.lesartsdecoratifs.fr/print/${recordNumber}`;
     let response;
     try {
-      response = await axios.get(recordUrl);
+      response = await this.axios.get(recordUrl);
     } catch (err) {
       return Promise.reject(err);
     }

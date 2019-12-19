@@ -1,6 +1,4 @@
 const debug = require('debug')('silknow:crawlers:vam');
-const axios = require('axios');
-const axiosRetry = require('axios-retry');
 const url = require('url');
 
 const BaseCrawler = require('../base');
@@ -9,11 +7,6 @@ const Record = require('../record');
 class VamCrawler extends BaseCrawler {
   constructor(argv) {
     super(argv);
-
-    axiosRetry(axios, {
-      retries: 10,
-      retryDelay: axiosRetry.exponentialDelay
-    });
 
     this.request.url =
       'https://www.vam.ac.uk/api/json/museumobject/search?after=1400&before=1900&materialsearch=silk&images=1';
@@ -52,7 +45,7 @@ class VamCrawler extends BaseCrawler {
     const recordUrl = `https://www.vam.ac.uk/api/json/museumobject/${recordNumber}`;
     let response;
     try {
-      response = await axios.get(recordUrl);
+      response = await this.axios.get(recordUrl);
     } catch (err) {
       return Promise.reject(err);
     }

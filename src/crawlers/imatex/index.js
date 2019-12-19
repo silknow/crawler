@@ -1,6 +1,4 @@
 const debug = require('debug')('silknow:crawlers:imatex');
-const axios = require('axios');
-const axiosRetry = require('axios-retry');
 const cheerio = require('cheerio');
 const querystring = require('querystring');
 const url = require('url');
@@ -32,11 +30,6 @@ class ImatexCrawler extends BaseCrawler {
     debug('Language:', this.selectedLanguage);
 
     // Configure request
-    axiosRetry(axios, {
-      retries: 10,
-      retryDelay: axiosRetry.exponentialDelay
-    });
-
     this.request.url = 'http://imatex.cdmt.cat/_cat/ajax_accio.aspx';
     this.request.method = 'post';
     this.limit = 16;
@@ -53,7 +46,9 @@ class ImatexCrawler extends BaseCrawler {
     let response;
     try {
       // idioma = language (1 = Catalan, 2 = Spanish, 3 = English)
-      response = await axios.get(`${IMATEX_SEARCH}?idioma=${langIndex + 1}`);
+      response = await this.axios.get(
+        `${IMATEX_SEARCH}?idioma=${langIndex + 1}`
+      );
     } catch (err) {
       return Promise.reject(err);
     }
@@ -103,7 +98,7 @@ class ImatexCrawler extends BaseCrawler {
         uri += `?idioma=${langIndex + 1}`;
       }
 
-      response = await axios.post(uri, formData, {
+      response = await this.axios.post(uri, formData, {
         headers: this.request.headers,
         withCredentials: true
       });
@@ -170,7 +165,7 @@ class ImatexCrawler extends BaseCrawler {
     const recordUrl = `http://imatex.cdmt.cat/_cat/fitxa_fitxa.aspx?m=n&num_id=${recordNumber}`;
     let response;
     try {
-      response = await axios.get(
+      response = await this.axios.get(
         `${recordUrl}&t=${new Date().getMilliseconds()}`,
         {
           headers: this.request.headers,

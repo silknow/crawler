@@ -1,6 +1,8 @@
 const debug = require('debug')('silknow:crawlers:base');
 const axios = require('axios');
 const axiosRetry = require('axios-retry');
+const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const filenamify = require('filenamify');
 const path = require('path');
@@ -29,7 +31,15 @@ class BaseCrawler {
       limit: null
     };
 
-    axiosRetry(axios, {
+    this.axios = axios.create({
+      timeout: 60000,
+      httpAgent: new http.Agent({ keepAlive: true }),
+      httpsAgent: new https.Agent({ keepAlive: true }),
+      maxRedirects: 10,
+      maxContentLength: 50 * 1000 * 1000
+    });
+
+    axiosRetry(this.axios, {
       retries: 10,
       retryDelay: axiosRetry.exponentialDelay
     });
@@ -66,7 +76,7 @@ class BaseCrawler {
 
     let response;
     try {
-      response = await axios(this.request);
+      response = await this.axios(this.request);
     } catch (err) {
       return Promise.reject(err);
     }

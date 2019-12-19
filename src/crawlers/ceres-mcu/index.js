@@ -1,6 +1,4 @@
 const debug = require('debug')('silknow:crawlers:ceres-mcu');
-const axios = require('axios');
-const axiosRetry = require('axios-retry');
 const cheerio = require('cheerio');
 const querystring = require('querystring');
 
@@ -10,11 +8,6 @@ const Record = require('../record');
 class CeresMcuCrawler extends BaseCrawler {
   constructor(argv) {
     super(argv);
-
-    axiosRetry(axios, {
-      retries: 10,
-      retryDelay: axiosRetry.exponentialDelay
-    });
 
     this.request.method = 'post';
     this.request.responseType = 'arraybuffer';
@@ -136,7 +129,7 @@ class CeresMcuCrawler extends BaseCrawler {
 
     let response;
     try {
-      response = await axios({
+      response = await this.axios({
         method: this.request.method,
         url: this.request.url,
         data: querystring.stringify(requestData),
