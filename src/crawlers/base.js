@@ -98,6 +98,8 @@ class BaseCrawler {
 
   // Downloads a file from an URL and returns the file path */
   async downloadFile(fileUrl, fileName, options) {
+    options = options || {};
+
     // Skip if --no-files is set
     if (this.argv.files === false) {
       return Promise.resolve();
@@ -121,7 +123,10 @@ class BaseCrawler {
 
     debug('Downloading file %s as %s', fileUrl, fileName);
 
-    return Utils.downloadFile(fileUrl, filePath, options);
+    return Utils.downloadFile(fileUrl, filePath, {
+      ...options,
+      axios: options.axios || this.axios
+    });
   }
 
   getRecordPath(recordId) {

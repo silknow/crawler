@@ -12,6 +12,11 @@ class MfaBostonCrawler extends BaseCrawler {
       'https://collections.mfa.org/search/Objects/classifications%3ATextiles%3BimageExistence%3Atrue%3BcollectionTerms%3AEurope%2CTextiles%20and%20Fashion%20Arts/*/list';
     this.paging.page = 'page';
     this.limit = 12;
+
+    // Disable http(s) agents for Mfa Boston because of an issue with some requests
+    // (see: https://github.com/silknow/crawler/issues/10)
+    this.axios.defaults.httpAgent = false;
+    this.axios.defaults.httpsAgent = false;
   }
 
   async onSearchResult(result) {

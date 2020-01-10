@@ -25,10 +25,11 @@ class Utils {
 
   static async downloadFile(url, filePath, options) {
     options = options || {};
+    const axiosInstance = options.axios || axios;
 
     return Utils.createPath(path.dirname(filePath))
       .then(() =>
-        axios({
+        axiosInstance({
           method: 'GET',
           url,
           responseType: 'stream',
