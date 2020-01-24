@@ -191,6 +191,7 @@ class BaseCrawler {
         await this.downloadFile(image.url, image.localFilename);
       } catch (e) {
         debug('Could not download image %s: %s', image.url, e.message);
+        image.hasError = true;
       }
     }
   }
