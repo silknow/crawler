@@ -186,11 +186,9 @@ class BaseCrawler {
   async downloadRecordImages(record) {
     const sanitizedRecordNumber = filenamify(record.getId());
     for (const [index, image] of record.getImages().entries()) {
+      image.localFilename = `${sanitizedRecordNumber}_${index}.jpg`;
       try {
-        const localFilename = `${sanitizedRecordNumber}_${index}.jpg`;
-
-        await this.downloadFile(image.url, localFilename);
-        image.localFilename = localFilename;
+        await this.downloadFile(image.url, image.localFilename);
       } catch (e) {
         debug('Could not download image %s: %s', image.url, e.message);
       }

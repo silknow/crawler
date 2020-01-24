@@ -92,28 +92,19 @@ class VamCrawler extends BaseCrawler {
 
     // Images
     if (Array.isArray(fields.image_set)) {
-      record.images = fields.image_set.map(image => ({
-        id: image.fields.image_id,
-        url: url.resolve(
-          'http://media.vam.ac.uk/media/thira/',
-          image.fields.local
-        )
-      }));
+      fields.image_set.forEach(image => {
+        record.addImage({
+          id: image.fields.image_id,
+          url: url.resolve(
+            'http://media.vam.ac.uk/media/thira/',
+            image.fields.local
+          )
+        });
+      });
     }
 
     // Download the images
-    for (const image of response.data[0].fields.image_set) {
-      const imageUrl = url.resolve(
-        'http://media.vam.ac.uk/media/thira/',
-        image.fields.local
-      );
-      const imageId = image.fields.image_id;
-      try {
-        await this.downloadFile(imageUrl, `${imageId}.jpg`);
-      } catch (e) {
-        debug('Could not download image %s: %s', image.url, e.message);
-      }
-    }
+    await this.downloadRecordImages(record);
 
     // Save the record
     return this.writeRecord(record);

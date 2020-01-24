@@ -42,13 +42,7 @@ class RisdMuseumCrawler extends BaseCrawler {
         const record = await this.downloadRecord(recordNumber, recordUrl);
 
         // Download the images
-        for (const image of record.getImages()) {
-          try {
-            await this.downloadFile(image.url);
-          } catch (e) {
-            debug('Could not download image %s: %s', image.url, e.message);
-          }
-        }
+        await this.downloadRecordImages(record);
       } catch (e) {
         debug('Could not download record:', e);
       }
@@ -286,13 +280,7 @@ class RisdMuseumCrawler extends BaseCrawler {
         );
 
         // Download the images
-        for (const image of relatedRecord.getImages()) {
-          try {
-            await this.downloadFile(image.url);
-          } catch (e) {
-            debug('Could not download image %s: %s', image.url, e.message);
-          }
-        }
+        await this.downloadRecordImages(relatedRecord);
       } catch (e) {
         debug('Could not download record:', e);
       }

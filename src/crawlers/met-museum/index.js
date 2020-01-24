@@ -30,13 +30,7 @@ class MetMuseumCrawler extends BaseCrawler {
         const record = await this.downloadRecord(recordData);
 
         // Download the images
-        for (const image of record.getImages()) {
-          const imageUrl = safeUrlResolve(
-            'https://images.metmuseum.org/CRDImages/',
-            image.url
-          );
-          await this.downloadImage(imageUrl);
-        }
+        await this.downloadRecordImages(record);
       } catch (e) {
         debug('Could not download record:', e);
       }
@@ -84,27 +78,35 @@ class MetMuseumCrawler extends BaseCrawler {
     if ($('.met-carousel__item__thumbnail').length === 0) {
       // No carousel, only a single picture
       // The original image URL is in the download button
-      const imageUrl = $('.the-artwork__meta .gtm__download__image')
-        .first()
-        .attr('href');
-      const image = {
-        id: '',
-        url: safeUrlResolve('https://images.metmuseum.org/CRDImages/', imageUrl)
-      };
-      record.addImage(image);
+      const imageUrl = safeUrlResolve(
+        'https://images.metmuseum.org/CRDImages/',
+        $('.the-artwork__meta .gtm__download__image')
+          .first()
+          .attr('href')
+      );
+      if (imageUrl) {
+        const image = {
+          id: '',
+          url: imageUrl
+        };
+        record.addImage(image);
+      }
     } else {
       // Carousel, loop through all photo and get the original image URL of each photo
       $('.met-carousel__item__thumbnail').each((i, elem) => {
-        const image = {
-          id: '',
-          url: safeUrlResolve(
-            'https://images.metmuseum.org/CRDImages/',
-            $(elem).attr('data-superjumboimage')
-          ),
-          title: $(elem).attr('title'),
-          description: $(elem).attr('alt')
-        };
-        record.addImage(image);
+        const imageUrl = safeUrlResolve(
+          'https://images.metmuseum.org/CRDImages/',
+          $(elem).attr('data-superjumboimage')
+        );
+        if (imageUrl) {
+          const image = {
+            id: '',
+            url: imageUrl,
+            title: $(elem).attr('title'),
+            description: $(elem).attr('alt')
+          };
+          record.addImage(image);
+        }
       });
     }
 
@@ -271,13 +273,7 @@ class MetMuseumCrawler extends BaseCrawler {
           const relatedRecord = await this.downloadRecord(relatedData);
 
           // Download the images
-          for (const image of relatedRecord.getImages()) {
-            const imageUrl = safeUrlResolve(
-              'https://images.metmuseum.org/CRDImages/',
-              image.url
-            );
-            await this.downloadImage(imageUrl);
-          }
+          await this.downloadRecordImages(relatedRecord);
         } catch (e) {
           debug('Could not download related record:', e);
         }
@@ -285,25 +281,6 @@ class MetMuseumCrawler extends BaseCrawler {
     }
 
     return Promise.resolve(record);
-  }
-
-  async downloadImage(imageUrl) {
-    try {
-      await this.downloadFile(imageUrl);
-    } catch (e) {
-      // Some images with /original/ links return an error 404 Not Found
-      // Try again with /web-large/ instead, which returns a slightly
-      // smaller image size, but seems to be available more often.
-      if (imageUrl.includes('/original/')) {
-        try {
-          await this.downloadFile(
-            imageUrl.replace(/\/original\//, '/web-large/')
-          );
-        } catch (err) {
-          debug('Could not download image %s: %s', imageUrl, e.message);
-        }
-      }
-    }
   }
 
   getRecordNumberFromUrl(recordUrl) {
