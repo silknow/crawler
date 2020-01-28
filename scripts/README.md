@@ -10,10 +10,22 @@ Make a copy of `config.sh.example` and name it `config.sh`, then edit the file t
 ./upload_records.sh "path to records .tar.gz archive"
 ```
 
+Example with Imatex:
+
+```bash
+./upload_records.sh "imatex_records_20200127.tar.gz"
+```
+
 ### Upload images
 
 ```bash
 ./upload_images.sh [-q|--quiet] "path to files .tar.gz archive" "museum identifier"
+```
+
+Example with Imatex:
+
+```bash
+./upload_images.sh "imatex_files_20200127.tar.gz" "imatex"
 ```
 
 A list of museum identifiers can be found [here](https://github.com/silknow/crawler/#list-of-museums).
