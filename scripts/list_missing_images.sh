@@ -28,8 +28,10 @@ csv_destpath="${media_folder}/${csv_filename}"
 py_filename="$(basename -- "${py_path}")"
 py_destpath="${media_folder}/${py_filename}"
 out_remote_path="${media_folder}/${out_filename}"
+query_filename="imageURLs.sparql"
+query_path="${BASH_SOURCE%/*}/${query_filename}"
 
-curl -o "${csv_path}" -H "Accept: text/csv" --data-urlencode "query@imageURLs.sparql" "${sparql_endpoint}" || exit 1
+curl -o "${csv_path}" -H "Accept: text/csv" --data-urlencode "query@${query_path}" "${sparql_endpoint}" || exit 1
 
 if [[ ! -f "${csv_path}" ]]; then
   echo "${csv_path}: Not found"
