@@ -39,10 +39,7 @@ class RisdMuseumCrawler extends BaseCrawler {
 
     for (const { recordNumber, recordUrl } of records) {
       try {
-        const record = await this.downloadRecord(recordNumber, recordUrl);
-
-        // Download the images
-        await this.downloadRecordImages(record);
+        await this.downloadRecord(recordNumber, recordUrl);
       } catch (e) {
         debug('Could not download record:', e);
       }
@@ -268,21 +265,18 @@ class RisdMuseumCrawler extends BaseCrawler {
       });
     });
 
+    // Download the images
+    await this.downloadRecordImages(record);
+
     // Save the record
     await this.writeRecord(record);
 
     // Download related objects records
     for (const relatedData of relatedObjects) {
       try {
-        const relatedRecord = await this.downloadRecord(
-          relatedData.id,
-          relatedData.url
-        );
-
-        // Download the images
-        await this.downloadRecordImages(relatedRecord);
+        await this.downloadRecord(relatedData.id, relatedData.url);
       } catch (e) {
-        debug('Could not download record:', e);
+        debug('Could not download related record:', e);
       }
     }
 

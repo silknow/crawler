@@ -27,10 +27,7 @@ class MetMuseumCrawler extends BaseCrawler {
 
     for (const recordData of result.results) {
       try {
-        const record = await this.downloadRecord(recordData);
-
-        // Download the images
-        await this.downloadRecordImages(record);
+        await this.downloadRecord(recordData);
       } catch (e) {
         debug('Could not download record:', e);
       }
@@ -85,11 +82,10 @@ class MetMuseumCrawler extends BaseCrawler {
           .attr('href')
       );
       if (imageUrl) {
-        const image = {
+        record.addImage({
           id: '',
           url: imageUrl
-        };
-        record.addImage(image);
+        });
       }
     } else {
       // Carousel, loop through all photo and get the original image URL of each photo
@@ -99,13 +95,12 @@ class MetMuseumCrawler extends BaseCrawler {
           $(elem).attr('data-superjumboimage')
         );
         if (imageUrl) {
-          const image = {
+          record.addImage({
             id: '',
             url: imageUrl,
             title: $(elem).attr('title'),
             description: $(elem).attr('alt')
-          };
-          record.addImage(image);
+          });
         }
       });
     }
@@ -262,6 +257,9 @@ class MetMuseumCrawler extends BaseCrawler {
       relatedObjects.map(r => r.id)
     );
 
+    // Download the images
+    await this.downloadRecordImages(record);
+
     // Save the record
     await this.writeRecord(record);
 
@@ -270,10 +268,7 @@ class MetMuseumCrawler extends BaseCrawler {
     if (!recordData.isRelated) {
       for (const relatedData of relatedObjects) {
         try {
-          const relatedRecord = await this.downloadRecord(relatedData);
-
-          // Download the images
-          await this.downloadRecordImages(relatedRecord);
+          await this.downloadRecord(relatedData);
         } catch (e) {
           debug('Could not download related record:', e);
         }
