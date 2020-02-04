@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-source "${BASH_SOURCE%/*}/config.sh"
+SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+source "${SCRIPTPATH}/config.sh"
 
 is_tar_valid() {
   tar -tzf "${1}" >/dev/null

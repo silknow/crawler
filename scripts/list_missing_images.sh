@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 
-source "${BASH_SOURCE%/*}/config.sh"
-source "${BASH_SOURCE%/*}/lib.sh"
+SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
-py_path="${BASH_SOURCE%/*}/check-silknow-urls.py"
+source "${SCRIPTPATH}/config.sh"
+source "${SCRIPTPATH}/lib.sh"
+
+py_path="${SCRIPTPATH}/check-silknow-urls.py"
 out_filename="silknow-urls-missing.csv"
-out_local_path="${BASH_SOURCE%/*}/${out_filename}"
+out_local_path="${SCRIPTPATH}/${out_filename}"
 
 if [[ ! "${py_path}" ]]; then
   echo "Python script check-silknow-urls.py not found"
@@ -23,13 +25,13 @@ if [[ -z "${sparql_endpoint}" ]]; then
 fi
 
 csv_filename="silknow-urls.csv"
-csv_path="${BASH_SOURCE%/*}/${csv_filename}"
+csv_path="${SCRIPTPATH}/${csv_filename}"
 csv_destpath="${media_folder}/${csv_filename}"
 py_filename="$(basename -- "${py_path}")"
 py_destpath="${media_folder}/${py_filename}"
 out_remote_path="${media_folder}/${out_filename}"
 query_filename="imageURLs.sparql"
-query_path="${BASH_SOURCE%/*}/${query_filename}"
+query_path="${SCRIPTPATH}/${query_filename}"
 
 curl -o "${csv_path}" -H "Accept: text/csv" --data-urlencode "query@${query_path}" "${sparql_endpoint}" || exit 1
 

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-source "${BASH_SOURCE%/*}/config.sh"
-source "${BASH_SOURCE%/*}/lib.sh"
+SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+source "${SCRIPTPATH}/config.sh"
+source "${SCRIPTPATH}/lib.sh"
 
 filepath="${1}"
 
