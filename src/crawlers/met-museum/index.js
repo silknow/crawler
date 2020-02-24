@@ -72,7 +72,18 @@ class MetMuseumCrawler extends BaseCrawler {
     const record = new Record(recordNumber, recordUrl);
 
     // Images
-    if ($('.met-carousel__item__thumbnail').length === 0) {
+    if ($('.artwork--not-openaccess ').length > 0) {
+      // Images are restricted (hosted on collectionapi.metmuseum.org instead of images.metmuseum.org)
+      $('.artwork__image').each((i, elem) => {
+        const imageUrl = $(elem).attr('src');
+        if (imageUrl.length > 0) {
+          record.addImage({
+            id: '',
+            url: imageUrl
+          });
+        }
+      });
+    } else if ($('.met-carousel__item__thumbnail').length === 0) {
       // No carousel, only a single picture
       // The original image URL is in the download button
       const imageUrl = safeUrlResolve(
