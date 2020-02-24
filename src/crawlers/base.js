@@ -5,14 +5,16 @@ const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const filenamify = require('filenamify');
+const imageType = require('image-type');
 const path = require('path');
+const readChunk = require('read-chunk');
 
 const Utils = require('../helpers/utils');
 const Record = require('./record');
 
 class BaseCrawler {
   constructor(argv) {
-    this.argv = argv;
+    this.argv = argv || {};
 
     this.currentOffset = 0;
     this.totalPages = 0;
@@ -188,7 +190,16 @@ class BaseCrawler {
     for (const [index, image] of record.getImages().entries()) {
       image.localFilename = `${sanitizedRecordNumber}_${index}.jpg`;
       try {
-        await this.downloadFile(image.url, image.localFilename);
+        const filePath = await this.downloadFile(
+          image.url,
+          image.localFilename
+        );
+        const fileBuffer = await readChunk(filePath, 0, 12);
+        if (imageType(fileBuffer) === null) {
+          // Not a valid image
+          debug('Could not detect image type for %s', image.url);
+          image.hasError = true;
+        }
       } catch (e) {
         debug('Could not download image %s: %s', image.url, e.message);
         image.hasError = true;
