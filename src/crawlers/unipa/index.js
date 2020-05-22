@@ -21,7 +21,7 @@ class UnipaCrawler extends BaseCrawler {
 
   async start() {
     await Utils.createPath(this.resourcesPath);
-    const files = fs.readdir(this.resourcesPath);
+    const files = fs.readdirSync(this.resourcesPath);
     return Promise.all(
       files
         .map(f => path.join(this.resourcesPath, f))
