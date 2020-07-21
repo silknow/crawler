@@ -58,5 +58,5 @@ scp "${media_user}"@silknow.uv.es:"${out_remote_path}/silknow-missing-files.csv"
 
 count_urls=$(($(wc -l "${out_local_path}/silknow-missing-urls.csv" | awk '{ print $1 }')-1))
 count_files=$(($(wc -l "${out_local_path}/silknow-missing-files.csv" | awk '{ print $1 }')-1))
-echo "Found ${count_urls} missing images urls (see file ${out_local_path}/silknow-missing-urls.csv})"
-echo "Found ${count_files} missing images urls (see file ${out_local_path}/silknow-missing-files.csv})"
+echo "Found ${count_urls} missing images urls (see file ${out_local_path}/silknow-missing-urls.csv)"
+echo "Found ${count_files} missing images urls (see file ${out_local_path}/silknow-missing-files.csv)"
