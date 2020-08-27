@@ -5,4 +5,4 @@ oc_pass=''
 
 media_user='upload'
 media_folder='/usr/share/tomcat/webapps/silknow/media'
-sparql_endpoint='http://data.silknow.org/sparql'
+sparql_endpoint='https://data.silknow.org/sparql'
