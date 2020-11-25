@@ -2,8 +2,8 @@ const debug = require('debug')('silknow:crawlers:met-museum');
 const cheerio = require('cheerio');
 const url = require('url');
 
-const BaseCrawler = require('../base');
-const Record = require('../record');
+const BaseCrawler = require('./base');
+const Record = require('../models/record');
 
 function safeUrlResolve(from, to) {
   if (!to) return null;

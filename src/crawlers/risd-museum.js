@@ -2,8 +2,8 @@ const debug = require('debug')('silknow:crawlers:risd-museum');
 const cheerio = require('cheerio');
 const url = require('url');
 
-const BaseCrawler = require('../base');
-const Record = require('../record');
+const BaseCrawler = require('./base');
+const Record = require('../models/record');
 
 class RisdMuseumCrawler extends BaseCrawler {
   constructor(argv) {

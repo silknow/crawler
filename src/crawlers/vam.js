@@ -1,8 +1,8 @@
 const debug = require('debug')('silknow:crawlers:vam');
 const url = require('url');
 
-const BaseCrawler = require('../base');
-const Record = require('../record');
+const BaseCrawler = require('./base');
+const Record = require('../models/record');
 
 class VamCrawler extends BaseCrawler {
   constructor(argv) {

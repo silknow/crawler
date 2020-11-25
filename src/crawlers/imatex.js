@@ -3,8 +3,8 @@ const cheerio = require('cheerio');
 const querystring = require('querystring');
 const url = require('url');
 
-const BaseCrawler = require('../base');
-const Record = require('../record');
+const BaseCrawler = require('./base');
+const Record = require('../models/record');
 
 const IMATEX_SEARCH = 'http://imatex.cdmt.cat/_cat/CercaAvancada.aspx';
 

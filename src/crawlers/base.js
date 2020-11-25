@@ -10,7 +10,7 @@ const path = require('path');
 const readChunk = require('read-chunk');
 
 const Utils = require('../helpers/utils');
-const Record = require('./record');
+const Record = require('../models/record');
 
 class BaseCrawler {
   constructor(argv) {

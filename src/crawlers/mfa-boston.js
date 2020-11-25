@@ -1,8 +1,8 @@
 const debug = require('debug')('silknow:crawlers:mfa-boston');
 const cheerio = require('cheerio');
 
-const BaseCrawler = require('../base');
-const Record = require('../record');
+const BaseCrawler = require('./base');
+const Record = require('../models/record');
 
 class MfaBostonCrawler extends BaseCrawler {
   constructor(argv) {

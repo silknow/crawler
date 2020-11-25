@@ -2,8 +2,8 @@ const debug = require('debug')('silknow:crawlers:ceres-mcu');
 const cheerio = require('cheerio');
 const querystring = require('querystring');
 
-const BaseCrawler = require('../base');
-const Record = require('../record');
+const BaseCrawler = require('./base');
+const Record = require('../models/record');
 
 class CeresMcuCrawler extends BaseCrawler {
   constructor(argv) {

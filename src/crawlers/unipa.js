@@ -3,9 +3,9 @@ const csv = require('csv');
 const fs = require('fs-extra');
 const path = require('path');
 
-const BaseCrawler = require('../base');
-const Record = require('../record');
-const Utils = require('../../helpers/utils');
+const BaseCrawler = require('./base');
+const Record = require('../models/record');
+const Utils = require('../helpers/utils');
 
 class UnipaCrawler extends BaseCrawler {
   constructor(argv) {

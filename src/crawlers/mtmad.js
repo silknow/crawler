@@ -2,8 +2,8 @@ const debug = require('debug')('silknow:crawlers:mtmad');
 const cheerio = require('cheerio');
 const querystring = require('querystring');
 
-const BaseCrawler = require('../base');
-const Record = require('../record');
+const BaseCrawler = require('./base');
+const Record = require('../models/record');
 
 class MtmadCrawler extends BaseCrawler {
   constructor(argv) {
