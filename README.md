@@ -34,6 +34,7 @@ Available parameters:
 * `risd-museum` - Rhode Island School of Design Museum
 * `vam` - Victoria and Albert Museum
 * `unipa` - Museo Diocesano Di Palermo
+* `mobilier-international` - Collection of the Mobilier national in France
 
 Crawled JSON structure of each museum can be found [here](https://github.com/silknow/crawler/wiki/Crawlers-JSON-Structure)
 
