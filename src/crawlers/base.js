@@ -150,7 +150,8 @@ class BaseCrawler {
   }
 
   recordExists(recordId) {
-    return !!this.argv.force || fs.existsSync(this.getRecordPath(recordId));
+    if (this.argv.force) return false;
+    return fs.existsSync(this.getRecordPath(recordId));
   }
 
   getRecord(recordId) {
