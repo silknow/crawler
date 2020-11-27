@@ -19,6 +19,7 @@ class BaseCrawler {
     this.currentOffset = 0;
     this.totalPages = 0;
     this.limit = 20;
+    this.startPage = 0;
 
     this.request = {
       url: null,
@@ -54,7 +55,8 @@ class BaseCrawler {
   }
 
   async downloadNextPage() {
-    const currentPage = Math.ceil(this.currentOffset / this.limit);
+    const currentPage =
+      this.startPage + Math.ceil(this.currentOffset / this.limit);
 
     debug(
       'Crawling search page %s/%s (offset = %s, limit = %s)',
