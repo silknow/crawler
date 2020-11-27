@@ -134,6 +134,9 @@ class BaseCrawler {
   }
 
   getRecordPath(recordId) {
+    if (typeof recordId !== 'string') {
+      throw new Error(`Record id: expected string, got ${typeof recordId}`);
+    }
     const sanitizedRecordId = filenamify(recordId);
     const fileName = `${sanitizedRecordId}.json`;
     const filePath = path.resolve(
