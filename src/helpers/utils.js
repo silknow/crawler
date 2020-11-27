@@ -25,33 +25,45 @@ class Utils {
 
   static async downloadFile(url, filePath, options) {
     options = options || {};
+
+    await Utils.createPath(path.dirname(filePath));
+
+    const urlInstance = new URL(url);
+    if (urlInstance.protocol === 'file:') {
+      return new Promise((resolve, reject) => {
+        fs.copyFile(decodeURIComponent(urlInstance.pathname), filePath, err => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve(filePath);
+        });
+      });
+    }
+
     const axiosInstance = options.axios || axios;
 
-    return Utils.createPath(path.dirname(filePath))
-      .then(() =>
-        axiosInstance({
-          method: 'GET',
-          url,
-          responseType: 'stream',
-          headers: options.headers
+    return axiosInstance({
+      method: 'GET',
+      url,
+      responseType: 'stream',
+      headers: options.headers
+    }).then(
+      response =>
+        new Promise((resolve, reject) => {
+          // Pipe the result stream into a file on disk
+          response.data.pipe(fs.createWriteStream(filePath));
+
+          response.data.on('end', () => {
+            resolve(filePath);
+          });
+
+          response.data.on('error', err => {
+            fs.unlink(filePath);
+            reject(err);
+          });
         })
-      )
-      .then(
-        response =>
-          new Promise((resolve, reject) => {
-            // Pipe the result stream into a file on disc
-            response.data.pipe(fs.createWriteStream(filePath));
-
-            response.data.on('end', () => {
-              resolve(filePath);
-            });
-
-            response.data.on('error', err => {
-              fs.unlink(filePath);
-              reject(err);
-            });
-          })
-      );
+    );
   }
 }
 
