@@ -1,7 +1,7 @@
 const debug = require('debug')('silknow:crawlers:unipa');
-const csv = require('csv');
 const fs = require('fs-extra');
 const path = require('path');
+const readline = require('readline');
 
 const BaseCrawler = require('./base');
 const Record = require('../models/record');
@@ -24,31 +24,25 @@ class UnipaCrawler extends BaseCrawler {
     const files = fs.readdirSync(this.resourcesPath);
     return Promise.all(
       files
+        .filter(f => f.endsWith('.json'))
         .map(f => path.join(this.resourcesPath, f))
         .map(filePath => this.parseFile(filePath))
     );
   }
 
   async parseFile(filePath) {
-    return new Promise((resolve, reject) => {
-      debug('Parsing file %s', filePath);
-      const parser = csv.parse(
-        {
-          delimiter: ','
-        },
-        async (err, data) => {
-          if (err) {
-            reject(err);
-            return;
-          }
+    debug('Parsing file %s', filePath);
 
-          const recordNumber = path.basename(filePath, '.csv');
-          await this.parseRecord(data, recordNumber);
-          resolve();
-        }
-      );
-      fs.createReadStream(filePath).pipe(parser);
+    const fileStream = fs.createReadStream(filePath);
+    const rl = readline.createInterface({
+      input: fileStream,
+      crlfDelay: Infinity
     });
+    for await (const line of rl) {
+      const data = JSON.parse(line);
+      const recordNumber = data.created;
+      await this.parseRecord(data, recordNumber);
+    }
   }
 
   async parseRecord(recordData, recordNumber) {
@@ -60,20 +54,24 @@ class UnipaCrawler extends BaseCrawler {
     debug('Writing record %s', recordNumber);
     const record = new Record(recordNumber);
 
-    recordData.forEach(row => {
-      record.addField(row[0], row[1]);
+    Object.entries(recordData)
+      .filter(([key]) => key !== 'image')
+      .forEach(([key, value]) => record.addField(key, value));
 
-      if (row[0] === 'Images (names of the images in the document)') {
-        const imagesIds = row[1].split(';');
-        imagesIds
-          .map(imageId => imageId.trim())
-          .forEach(imageId => {
-            record.addImage({
-              id: imageId
-            });
-          });
-      }
+    record.addImage({
+      id: path.basename(recordData.image, path.extname(recordData.image)),
+      url: `file://${path.join(
+        this.resourcesPath,
+        'images',
+        path.basename(recordData.image)
+      )}`
     });
+
+    // Download the images
+    await this.downloadRecordImages(record);
+
+    // Remove local URLs since they are useless
+    record.images.forEach(image => delete image.url);
 
     return this.writeRecord(record);
   }
