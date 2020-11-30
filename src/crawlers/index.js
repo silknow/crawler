@@ -10,6 +10,7 @@ const JocondeCrawler = require('./joconde');
 const UnipaCrawler = require('./unipa');
 const MobilierInternationalCrawler = require('./mobilier-international');
 const SmithsonianCrawler = require('./smithsonian');
+const VenetianCrawler = require('./venetian');
 
 module.exports = {
   LesArtsDecoratifsCrawler,
@@ -23,5 +24,6 @@ module.exports = {
   JocondeCrawler,
   UnipaCrawler,
   MobilierInternationalCrawler,
-  SmithsonianCrawler
+  SmithsonianCrawler,
+  VenetianCrawler,
 };
