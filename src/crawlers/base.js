@@ -20,6 +20,7 @@ class BaseCrawler {
     this.totalPages = 0;
     this.limit = 20;
     this.startPage = 0;
+    this.currentPage = null;
 
     this.request = {
       url: null,
@@ -55,19 +56,19 @@ class BaseCrawler {
   }
 
   async downloadNextPage() {
-    const currentPage =
+    this.currentPage =
       this.startPage + Math.ceil(this.currentOffset / this.limit);
 
     debug(
       'Crawling search page %s/%s (offset = %s, limit = %s)',
-      currentPage,
+      this.currentPage,
       this.totalPages,
       this.currentOffset,
       this.limit
     );
 
     if (this.paging.page) {
-      this.request.params[this.paging.page] = currentPage;
+      this.request.params[this.paging.page] = this.currentPage;
     }
     if (this.paging.offset) {
       this.request.params[this.paging.offset] = this.currentOffset;
@@ -92,8 +93,8 @@ class BaseCrawler {
       return Promise.reject(err);
     }
 
-    if (currentPage >= this.totalPages) {
-      debug('Done crawling pages (%s/%s)', currentPage, this.totalPages);
+    if (this.currentPage >= this.totalPages) {
+      debug('Done crawling pages (%s/%s)', this.currentPage, this.totalPages);
       return Promise.resolve();
     }
 
