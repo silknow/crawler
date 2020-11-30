@@ -65,7 +65,7 @@ module.exports = {
       });
 
       let output;
-      const format = (argv.format || 'json').trim().toLowerCase();
+      const format = (argv.format || 'md').trim().toLowerCase();
       if (['md', 'markdown'].includes(format)) {
         output =
           '| Label | Sample Value | Sample File |\n| ----- | ------------ | ------------|\n';
