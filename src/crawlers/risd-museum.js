@@ -33,7 +33,7 @@ class RisdMuseumCrawler extends BaseCrawler {
       );
       records.push({
         recordNumber,
-        recordUrl
+        recordUrl,
       });
     });
 
@@ -99,11 +99,7 @@ class RisdMuseumCrawler extends BaseCrawler {
         const terms = $(item).find('.term__item');
 
         terms.each((j, term) => {
-          const value = $(term)
-            .find('.objects__link')
-            .first()
-            .text()
-            .trim();
+          const value = $(term).find('.objects__link').first().text().trim();
           if (value.length > 0) {
             values.push(value);
           }
@@ -123,9 +119,7 @@ class RisdMuseumCrawler extends BaseCrawler {
 
     // Additional fields (Dimensions, Type, Credit, Object Number, ...)
     $('.content__section--description .ckeditor-accordion dt').each((i, dt) => {
-      const $dd = $(dt)
-        .next('dd')
-        .first();
+      const $dd = $(dt).next('dd').first();
       // Ignore .object__info items, because they're already scrapped above
       if ($dd.find('.object__info').length === 0) {
         const label = $(dt)
@@ -135,11 +129,7 @@ class RisdMuseumCrawler extends BaseCrawler {
           .trim();
 
         if ($dd.find('.field').length > 0) {
-          const value = $dd
-            .find('.field')
-            .first()
-            .text()
-            .trim();
+          const value = $dd.find('.field').first().text().trim();
 
           record.addField(label, value);
         } else if ($dd.find('.term__list').length > 0) {
@@ -147,11 +137,7 @@ class RisdMuseumCrawler extends BaseCrawler {
           const terms = $dd.find('.term__item');
 
           terms.each((j, term) => {
-            const value = $(term)
-              .find('.objects__link')
-              .first()
-              .text()
-              .trim();
+            const value = $(term).find('.objects__link').first().text().trim();
             values.push(value);
           });
 
@@ -181,7 +167,7 @@ class RisdMuseumCrawler extends BaseCrawler {
       record.publications.push({
         url: articleUrl,
         title: articleTitle,
-        subtitle: articleSubtitle
+        subtitle: articleSubtitle,
       });
     });
 
@@ -211,7 +197,7 @@ class RisdMuseumCrawler extends BaseCrawler {
           url: articleUrl,
           title: articleTitle,
           date: articleDate,
-          blurb: articleBlurb
+          blurb: articleBlurb,
         });
       }
     );
@@ -228,13 +214,13 @@ class RisdMuseumCrawler extends BaseCrawler {
 
         relatedObjects.push({
           id,
-          url: linkUrl
+          url: linkUrl,
         });
       }
     );
     record.addField(
       'relatedObjects',
-      relatedObjects.map(r => r.id)
+      relatedObjects.map((r) => r.id)
     );
 
     // Use
@@ -261,7 +247,7 @@ class RisdMuseumCrawler extends BaseCrawler {
 
       record.addImage({
         id: '',
-        url: new url.URL(imageUrl, 'https://risdmuseum.org/').href
+        url: new url.URL(imageUrl, 'https://risdmuseum.org/').href,
       });
     });
 

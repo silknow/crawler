@@ -6,13 +6,11 @@ const path = require('path');
 class Utils {
   static async createPath(targetPath) {
     return new Promise((resolve, reject) => {
-      fs.lstat(targetPath, err => {
+      fs.lstat(targetPath, async (err) => {
         if (err) {
           if (err.code === 'ENOENT') {
-            mkdirp(targetPath, e => {
-              if (e) reject(e);
-              else resolve();
-            });
+            await mkdirp(targetPath);
+            resolve();
           } else {
             reject(err);
           }
@@ -31,13 +29,17 @@ class Utils {
     const urlInstance = new URL(url);
     if (urlInstance.protocol === 'file:') {
       return new Promise((resolve, reject) => {
-        fs.copyFile(decodeURIComponent(urlInstance.pathname), filePath, err => {
-          if (err) {
-            reject(err);
-            return;
+        fs.copyFile(
+          decodeURIComponent(urlInstance.pathname),
+          filePath,
+          (err) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+            resolve(filePath);
           }
-          resolve(filePath);
-        });
+        );
       });
     }
 
@@ -47,9 +49,9 @@ class Utils {
       method: 'GET',
       url,
       responseType: 'stream',
-      headers: options.headers
+      headers: options.headers,
     }).then(
-      response =>
+      (response) =>
         new Promise((resolve, reject) => {
           // Pipe the result stream into a file on disk
           response.data.pipe(fs.createWriteStream(filePath));
@@ -58,7 +60,7 @@ class Utils {
             resolve(filePath);
           });
 
-          response.data.on('error', err => {
+          response.data.on('error', (err) => {
             fs.unlink(filePath);
             reject(err);
           });

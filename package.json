@@ -14,27 +14,27 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.19.1",
-    "axios-retry": "^3.1.2",
-    "camelcase": "^5.0.0",
-    "cheerio": "^1.0.0-rc.2",
-    "csv": "^5.1.1",
-    "debug": "^3.1.0",
-    "filenamify": "^4.0.0",
-    "fs-extra": "^8.1.0",
+    "axios": "^0.21.0",
+    "axios-retry": "^3.1.9",
+    "camelcase": "^6.2.0",
+    "cheerio": "^1.0.0-rc.3",
+    "csv": "^5.3.2",
+    "debug": "^4.3.1",
+    "filenamify": "^4.2.0",
+    "fs-extra": "^9.0.1",
     "image-type": "^4.1.0",
-    "mkdirp": "^0.5.1",
+    "mkdirp": "^1.0.4",
     "read-chunk": "^3.2.0",
-    "yargs": "^13.2.4"
+    "yargs": "^16.1.1"
   },
   "devDependencies": {
-    "eslint": "^6.7.2",
-    "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-config-prettier": "^6.7.0",
-    "eslint-plugin-import": "^2.19.1",
-    "eslint-plugin-prettier": "^3.1.2",
-    "husky": "^3.1.0",
-    "prettier": "^1.19.1"
+    "eslint": "^7.14.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-prettier": "^3.1.4",
+    "husky": "^4.3.0",
+    "prettier": "^2.2.1"
   },
   "husky": {
     "hooks": {

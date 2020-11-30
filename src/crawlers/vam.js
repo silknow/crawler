@@ -55,14 +55,14 @@ class VamCrawler extends BaseCrawler {
     // Map the output to a normalized structure for the converter
     const { fields } = response.data[0];
     record.fields = Object.keys(fields)
-      .filter(key => ['string', 'number'].includes(typeof fields[key]))
-      .map(key => ({ label: key, value: fields[key] }));
+      .filter((key) => ['string', 'number'].includes(typeof fields[key]))
+      .map((key) => ({ label: key, value: fields[key] }));
 
     // Categories
     if (Array.isArray(fields.categories)) {
       record.addField(
         'categories',
-        fields.categories.map(category => category.fields.name)
+        fields.categories.map((category) => category.fields.name)
       );
     }
 
@@ -70,7 +70,7 @@ class VamCrawler extends BaseCrawler {
     if (Array.isArray(fields.materials)) {
       record.addField(
         'materials',
-        fields.materials.map(material => material.fields.name)
+        fields.materials.map((material) => material.fields.name)
       );
     }
 
@@ -78,7 +78,7 @@ class VamCrawler extends BaseCrawler {
     if (Array.isArray(fields.techniques)) {
       record.addField(
         'techniques',
-        fields.techniques.map(technique => technique.fields.name)
+        fields.techniques.map((technique) => technique.fields.name)
       );
     }
 
@@ -86,19 +86,19 @@ class VamCrawler extends BaseCrawler {
     if (Array.isArray(fields.collections)) {
       record.addField(
         'collections',
-        fields.collections.map(collection => collection.fields.name)
+        fields.collections.map((collection) => collection.fields.name)
       );
     }
 
     // Images
     if (Array.isArray(fields.image_set)) {
-      fields.image_set.forEach(image => {
+      fields.image_set.forEach((image) => {
         record.addImage({
           id: image.fields.image_id,
           url: url.resolve(
             'http://media.vam.ac.uk/media/thira/',
             image.fields.local
-          )
+          ),
         });
       });
     }

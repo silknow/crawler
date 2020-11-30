@@ -13,7 +13,7 @@ class CeresMcuCrawler extends BaseCrawler {
     this.request.responseType = 'arraybuffer';
     this.request.url = 'http://ceres.mcu.es/pages/Main';
     this.request.headers = {
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/x-www-form-urlencoded',
     };
     this.limit = 24;
 
@@ -67,7 +67,7 @@ class CeresMcuCrawler extends BaseCrawler {
       const recordInfo = {
         id: null,
         museum: null,
-        inputs: []
+        inputs: [],
       };
       $(elem)
         .find('input')
@@ -87,7 +87,7 @@ class CeresMcuCrawler extends BaseCrawler {
 
           recordInfo.inputs.push({
             name: inputName,
-            value: inputValue
+            value: inputValue,
           });
         });
 
@@ -121,9 +121,9 @@ class CeresMcuCrawler extends BaseCrawler {
 
     const requestData = {
       servletOrigen: 'ResultSearch',
-      servletDestino: 'ResultSearch'
+      servletDestino: 'ResultSearch',
     };
-    recordInfo.inputs.forEach(input => {
+    recordInfo.inputs.forEach((input) => {
       requestData[input.name] = input.value;
     });
 
@@ -134,7 +134,7 @@ class CeresMcuCrawler extends BaseCrawler {
         url: this.request.url,
         data: querystring.stringify(requestData),
         headers: this.request.headers,
-        responseType: 'arraybuffer'
+        responseType: 'arraybuffer',
       });
     } catch (err) {
       return Promise.reject(err);
@@ -146,16 +146,8 @@ class CeresMcuCrawler extends BaseCrawler {
 
     // Fields
     $('.contenido tr').each((i, elem) => {
-      const label = $(elem)
-        .find('.tabla1TituloMB')
-        .first()
-        .text()
-        .trim();
-      const value = $(elem)
-        .find('.celdaTablaR')
-        .first()
-        .text()
-        .trim();
+      const label = $(elem).find('.tabla1TituloMB').first().text().trim();
+      const value = $(elem).find('.celdaTablaR').first().text().trim();
 
       record.addField(label, value);
     });
@@ -173,7 +165,7 @@ class CeresMcuCrawler extends BaseCrawler {
         url: `http://ceres.mcu.es/pages/Viewer?accion=42&AMuseo=${encodeURIComponent(
           recordInfo.museum
         )}&Ninv=${encodeURIComponent(recordInfo.id)}&txt_id_imagen=1`,
-        text: imageText
+        text: imageText,
       });
     }
 
@@ -190,7 +182,7 @@ class CeresMcuCrawler extends BaseCrawler {
         url: `http://ceres.mcu.es/pages/Viewer?accion=42&AMuseo=${encodeURIComponent(
           recordInfo.museum
         )}&Ninv=${encodeURIComponent(recordInfo.id)}&txt_id_imagen=${i + 1}`,
-        text: imageText
+        text: imageText,
       });
     });
 

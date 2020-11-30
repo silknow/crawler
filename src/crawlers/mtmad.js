@@ -23,7 +23,7 @@ class MtmadCrawler extends BaseCrawler {
       response = await this.axios.get(
         'http://www.mtmad.fr/floracci/jsp/opac/opac_index.jsp?action=opac_search_bien_simple&only_main=true&lang=fre-FR',
         {
-          withCredentials: true
+          withCredentials: true,
         }
       );
     } catch (err) {
@@ -55,7 +55,7 @@ class MtmadCrawler extends BaseCrawler {
       query: 'OPAC_EXPERT_BIEN_PERSO',
       source: 'musee',
       sysFormTagHidden: '',
-      ActionManagerInit: 'true'
+      ActionManagerInit: 'true',
     });
     formData += '&MUSEETMP=MUSEE%DES%TISSUS&MUSEETMP=MUSEE%DES%ARTS%DECORATIFS';
 
@@ -66,7 +66,7 @@ class MtmadCrawler extends BaseCrawler {
         formData,
         {
           headers: this.request.headers,
-          withCredentials: true
+          withCredentials: true,
         }
       );
     } catch (err) {
@@ -86,7 +86,7 @@ class MtmadCrawler extends BaseCrawler {
       query: 'OPAC_EXPERT_BIEN_PERSO',
       pagerName: 'search_result',
       page_number: currentPage.toString(),
-      sysFormTagHidden: ''
+      sysFormTagHidden: '',
     });
 
     return super.downloadNextPage();
@@ -95,10 +95,7 @@ class MtmadCrawler extends BaseCrawler {
   async onSearchResult(result) {
     const $ = cheerio.load(result);
     const resultsCount = parseInt(
-      $('.sp_countContainer .sp_count')
-        .first()
-        .text()
-        .trim(),
+      $('.sp_countContainer .sp_count').first().text().trim(),
       10
     );
     this.totalPages = Math.ceil(resultsCount / this.limit);
@@ -139,7 +136,7 @@ class MtmadCrawler extends BaseCrawler {
     try {
       response = await this.axios.get(recordUrl, {
         headers: this.request.headers,
-        withCredentials: true
+        withCredentials: true,
       });
     } catch (err) {
       return Promise.reject(err);
@@ -150,13 +147,7 @@ class MtmadCrawler extends BaseCrawler {
     const $ = cheerio.load(response.data);
 
     // Title
-    record.addField(
-      'title',
-      $('.sp_Titre')
-        .first()
-        .text()
-        .trim()
-    );
+    record.addField('title', $('.sp_Titre').first().text().trim());
 
     // Details
     const details = [];
@@ -174,31 +165,18 @@ class MtmadCrawler extends BaseCrawler {
 
     // Description
     // Convert <br> tags into newlines for the description
-    $('.sp_Description .sp_Enum')
-      .first()
-      .find('br')
-      .replaceWith('\n');
+    $('.sp_Description .sp_Enum').first().find('br').replaceWith('\n');
     record.addField(
       'description',
-      $('.sp_Description .sp_Enum')
-        .first()
-        .text()
-        .trim()
+      $('.sp_Description .sp_Enum').first().text().trim()
     );
 
     // Bibliography
     $('.sp_Bibliography .sp_Enum').each((i, elem) => {
-      const label = $(elem)
-        .find('.sp_CatBib')
-        .first()
-        .text()
-        .trim();
+      const label = $(elem).find('.sp_CatBib').first().text().trim();
 
       const value =
-        $(elem)
-          .children(':not(.sp_CatBib)')
-          .text()
-          .trim() +
+        $(elem).children(':not(.sp_CatBib)').text().trim() +
         $(elem)
           .contents()
           .filter((j, node) => node.type === 'text')
@@ -215,7 +193,7 @@ class MtmadCrawler extends BaseCrawler {
       record.addImage({
         id: '',
         url: imageUrl,
-        title: imageTitle
+        title: imageTitle,
       });
     });
 

@@ -10,7 +10,7 @@ class JocondeCrawler extends BaseCrawler {
 
     this.request.method = 'post';
     this.request.headers = {
-      'Content-Type': 'application/x-ndjson'
+      'Content-Type': 'application/x-ndjson',
     };
     this.request.url =
       'https://api.pop.culture.gouv.fr/search/joconde/_msearch';
@@ -26,15 +26,15 @@ class JocondeCrawler extends BaseCrawler {
                 { wildcard: { 'DOMN.keyword': '*textile*' } },
                 { wildcard: { 'TECH.keyword': '*soie*' } },
                 { wildcard: { 'DENO.keyword': '*ruban*' } },
-                { term: { 'CONTIENT_IMAGE.keyword': 'oui' } }
+                { term: { 'CONTIENT_IMAGE.keyword': 'oui' } },
               ],
               must_not: [],
               should: [],
-              should_not: []
-            }
-          }
-        ]
-      }
+              should_not: [],
+            },
+          },
+        ],
+      },
     };
     this.updateRequestData(this.request);
 
@@ -43,18 +43,18 @@ class JocondeCrawler extends BaseCrawler {
 
   updateRequestData(request) {
     request.data = `${JSON.stringify({
-      preference: 'res'
+      preference: 'res',
     })}\n${JSON.stringify({
       query: this.baseQuery,
       size: this.limit,
-      from: this.currentOffset
+      from: this.currentOffset,
     })}\n`;
   }
 
   async downloadRecordsFromResult(result, isRelated) {
     const recordsData = [];
 
-    result.responses[0].hits.hits.forEach(hit => {
+    result.responses[0].hits.hits.forEach((hit) => {
       // eslint-disable-next-line no-underscore-dangle
       recordsData.push(hit._source);
     });
@@ -91,7 +91,7 @@ class JocondeCrawler extends BaseCrawler {
   async downloadRelatedRecord(invNumber) {
     const req = { ...this.request };
     req.data = `${JSON.stringify({
-      preference: 'res'
+      preference: 'res',
     })}\n${JSON.stringify({
       query: {
         bool: {
@@ -102,16 +102,16 @@ class JocondeCrawler extends BaseCrawler {
                 must_not: [],
                 should: [
                   { term: { 'INV.keyword': invNumber } },
-                  { wildcard: { 'INV.keyword': `*${invNumber} ;*` } }
+                  { wildcard: { 'INV.keyword': `*${invNumber} ;*` } },
                 ],
-                should_not: []
-              }
-            }
-          ]
-        }
+                should_not: [],
+              },
+            },
+          ],
+        },
       },
       size: 1,
-      from: 0
+      from: 0,
     })}\n`;
 
     let response;
@@ -142,12 +142,12 @@ class JocondeCrawler extends BaseCrawler {
     const record = new Record(recordNumber, recordUrl);
 
     // Add properties as fields
-    Object.keys(recordData).forEach(key => {
+    Object.keys(recordData).forEach((key) => {
       const value = recordData[key];
       if (typeof value !== 'object') {
         record.addField(key, recordData[key]);
       } else if (Array.isArray(value)) {
-        value.forEach(subValue => {
+        value.forEach((subValue) => {
           if (typeof subValue !== 'object') {
             record.addField(key, [subValue]);
           }
@@ -164,13 +164,13 @@ class JocondeCrawler extends BaseCrawler {
     }
 
     // Images
-    recordData.IMG.forEach(imageUrlPart => {
+    recordData.IMG.forEach((imageUrlPart) => {
       record.addImage({
         id: '',
         url: url.resolve(
           'https://s3.eu-west-3.amazonaws.com/pop-phototeque/',
           imageUrlPart
-        )
+        ),
       });
     });
 
@@ -188,7 +188,7 @@ class JocondeCrawler extends BaseCrawler {
 
           const relatedRecords = await this.downloadRelatedRecord(invNumber);
           if (Array.isArray(relatedRecords)) {
-            relatedRecords.forEach(r => {
+            relatedRecords.forEach((r) => {
               record.addField('relatedObjects', [r.id]);
             });
           }

@@ -24,10 +24,7 @@ class LesArtsDecoratifsCrawler extends BaseCrawler {
 
     const records = [];
     $('.view-id-ensembles_childs_search > .view-content td').each((i, elem) => {
-      const recordUrl = $(elem)
-        .find('a.selection-add')
-        .first()
-        .attr('href');
+      const recordUrl = $(elem).find('a.selection-add').first().attr('href');
       if (recordUrl) {
         const recordNumber = path.basename(url.parse(recordUrl).pathname);
         records.push(recordNumber);
@@ -76,15 +73,11 @@ class LesArtsDecoratifsCrawler extends BaseCrawler {
           .attr('class')
           .trim()
           .split(/\s+/)
-          .filter(cls => cls.indexOf('field-name-') === 0)
-          .map(cls => cls.substr('field-name-'.length))
+          .filter((cls) => cls.indexOf('field-name-') === 0)
+          .map((cls) => cls.substr('field-name-'.length))
           .shift() || null;
 
-      const fieldLabel = $(elem)
-        .find('.field-label')
-        .first()
-        .text()
-        .trim();
+      const fieldLabel = $(elem).find('.field-label').first().text().trim();
 
       const fieldItems = [];
       $(elem)
@@ -105,7 +98,7 @@ class LesArtsDecoratifsCrawler extends BaseCrawler {
                 const imageUrl = $(img).attr('src');
                 record.addImage({
                   id: '',
-                  url: imageUrl
+                  url: imageUrl,
                 });
                 fieldItems.push(imageUrl);
               });
@@ -113,9 +106,7 @@ class LesArtsDecoratifsCrawler extends BaseCrawler {
 
           if (fieldItems.length === 0) {
             // Replace <br> with newlines
-            $(item)
-              .find('br')
-              .replaceWith('\n');
+            $(item).find('br').replaceWith('\n');
             fieldItems.push($(item).text());
           }
         })

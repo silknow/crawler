@@ -15,7 +15,7 @@ class MobilierInternationalCrawler extends BaseCrawler {
       product_type_ids: ['94', '97', '98'], // Tapisserie, Tissu précieux, Vêtement et accessoire
       period_start_year: '1500', // Start Year: 1500
       period_end_year: '1860', // End Year: 1860
-      material_ids: ['97', '98', '103', '105', '106', '108', '96'] // Soie, Brocatelle, Damas, Lampas, Reps, Satin, Velours,
+      material_ids: ['97', '98', '103', '105', '106', '108', '96'], // Soie, Brocatelle, Damas, Lampas, Reps, Satin, Velours,
     };
     this.startPage = 1;
     this.limit = 25;
@@ -53,13 +53,13 @@ class MobilierInternationalCrawler extends BaseCrawler {
 
     // Add properties as fields
     Object.keys(recordData)
-      .filter(key => key !== 'images')
-      .forEach(key => {
+      .filter((key) => key !== 'images')
+      .forEach((key) => {
         const value = recordData[key];
         if (typeof value !== 'object') {
           record.addField(key, recordData[key]);
         } else if (Array.isArray(value)) {
-          value.forEach(subValue => {
+          value.forEach((subValue) => {
             if (typeof subValue !== 'object') {
               record.addField(key, [subValue]);
             }
@@ -68,7 +68,7 @@ class MobilierInternationalCrawler extends BaseCrawler {
       });
 
     // Images
-    recordData.images.forEach(image => {
+    recordData.images.forEach((image) => {
       record.addImage({
         id: '',
         license: image.license,
@@ -76,7 +76,7 @@ class MobilierInternationalCrawler extends BaseCrawler {
         url: url.resolve(
           'https://collection.mobiliernational.culture.gouv.fr/media/xl/',
           image.path
-        )
+        ),
       });
     });
 

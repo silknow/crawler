@@ -3,15 +3,15 @@ const { argv } = require('yargs');
 const crawlers = require('./crawlers');
 const FieldsLister = require('./fields-lister');
 
-process.on('unhandledRejection', err => {
+process.on('unhandledRejection', (err) => {
   throw err;
 });
 
 const targetCrawlers = [];
 
-argv._.forEach(crawlerName => {
+argv._.forEach((crawlerName) => {
   const crawler = Object.values(crawlers)
-    .filter(c => c.id === crawlerName)
+    .filter((c) => c.id === crawlerName)
     .pop();
   if (!crawler) {
     console.error(`Crawler not found: ${crawlerName}`);
@@ -23,7 +23,7 @@ argv._.forEach(crawlerName => {
 if (!targetCrawlers.length) {
   console.log(
     `No crawler selected. Crawlers available: ${Object.values(crawlers)
-      .map(c => c.id)
+      .map((c) => c.id)
       .join(', ')}`
   );
 } else {

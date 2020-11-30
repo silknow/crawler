@@ -25,13 +25,13 @@ class BaseCrawler {
       url: null,
       data: null,
       method: 'get',
-      params: {}
+      params: {},
     };
 
     this.paging = {
       page: null,
       offset: null,
-      limit: null
+      limit: null,
     };
 
     this.axios = axios.create({
@@ -39,12 +39,12 @@ class BaseCrawler {
       httpAgent: new http.Agent({ keepAlive: true }),
       httpsAgent: new https.Agent({ keepAlive: true }),
       maxRedirects: 10,
-      maxContentLength: 50 * 1000 * 1000
+      maxContentLength: 50 * 1000 * 1000,
     });
 
     axiosRetry(this.axios, {
       retries: 10,
-      retryDelay: axiosRetry.exponentialDelay
+      retryDelay: axiosRetry.exponentialDelay,
     });
   }
 
@@ -129,7 +129,7 @@ class BaseCrawler {
 
     return Utils.downloadFile(fileUrl, filePath, {
       ...options,
-      axios: options.axios || this.axios
+      axios: options.axios || this.axios,
     });
   }
 
@@ -177,14 +177,10 @@ class BaseCrawler {
     const filePath = this.getRecordPath(recordName);
 
     // Create record directory path
-    try {
-      await Utils.createPath(path.dirname(filePath));
-    } catch (e) {
-      return Promise.reject(e);
-    }
+    await Utils.createPath(path.dirname(filePath));
 
     return new Promise((resolve, reject) => {
-      fs.writeFile(filePath, JSON.stringify(record), err => {
+      fs.writeFile(filePath, JSON.stringify(record), (err) => {
         if (err) reject(err);
         else resolve();
       });

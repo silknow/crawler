@@ -65,39 +65,25 @@ class SmithsonianCrawler extends BaseCrawler {
     const $ = cheerio.load(response.data);
 
     // Title
-    record.addField(
-      'title',
-      $('.page-title h1')
-        .text()
-        .trim()
-    );
+    record.addField('title', $('.page-title h1').text().trim());
 
     // Fields
     $('.recordDetails dl').each((i, dl) => {
-      let label = $(dl)
-        .find('dt')
-        .first()
-        .text()
-        .trim();
+      let label = $(dl).find('dt').first().text().trim();
       if (!label.length) {
         label =
           $(dl)
             .attr('class')
             .trim()
             .split(/\s+/)
-            .filter(cls => cls.indexOf('field-') === 0)
-            .map(cls => cls.substr('field-'.length))
+            .filter((cls) => cls.indexOf('field-') === 0)
+            .map((cls) => cls.substr('field-'.length))
             .shift() || '';
       }
       $(dl)
         .find('dd')
         .each((j, dd) => {
-          record.addField(
-            label,
-            $(dd)
-              .text()
-              .trim()
-          );
+          record.addField(label, $(dd).text().trim());
         });
     });
 
@@ -107,7 +93,7 @@ class SmithsonianCrawler extends BaseCrawler {
         id: '',
         url: $(img).attr('data-src'),
         title: $(img).attr('title'),
-        description: $(img).attr('alt')
+        description: $(img).attr('alt'),
       });
     });
 

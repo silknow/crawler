@@ -79,7 +79,7 @@ class MetMuseumCrawler extends BaseCrawler {
         if (imageUrl.length > 0) {
           record.addImage({
             id: '',
-            url: imageUrl
+            url: imageUrl,
           });
         }
       });
@@ -88,14 +88,12 @@ class MetMuseumCrawler extends BaseCrawler {
       // The original image URL is in the download button
       const imageUrl = safeUrlResolve(
         'https://images.metmuseum.org/CRDImages/',
-        $('.the-artwork__meta .gtm__download__image')
-          .first()
-          .attr('href')
+        $('.the-artwork__meta .gtm__download__image').first().attr('href')
       );
       if (imageUrl) {
         record.addImage({
           id: '',
-          url: imageUrl
+          url: imageUrl,
         });
       }
     } else {
@@ -110,7 +108,7 @@ class MetMuseumCrawler extends BaseCrawler {
             id: '',
             url: imageUrl,
             title: $(elem).attr('title'),
-            description: $(elem).attr('alt')
+            description: $(elem).attr('alt'),
           });
         }
       });
@@ -118,35 +116,20 @@ class MetMuseumCrawler extends BaseCrawler {
 
     // Add details fields from the web page
     $('.artwork__tombstone--row').each((i, elem) => {
-      const label = $(elem)
-        .find('.artwork__tombstone--label')
-        .first()
-        .text();
+      const label = $(elem).find('.artwork__tombstone--label').first().text();
 
-      const value = $(elem)
-        .find('.artwork__tombstone--value')
-        .first()
-        .text();
+      const value = $(elem).find('.artwork__tombstone--value').first().text();
 
       record.addField(label, value);
     });
 
     // Title
-    record.addField(
-      'title',
-      $('.artwork__title--text')
-        .first()
-        .text()
-        .trim()
-    );
+    record.addField('title', $('.artwork__title--text').first().text().trim());
 
     // Description
     record.addField(
       'description',
-      $('.artwork__intro__desc')
-        .first()
-        .text()
-        .trim()
+      $('.artwork__intro__desc').first().text().trim()
     );
 
     // Image license
@@ -159,24 +142,15 @@ class MetMuseumCrawler extends BaseCrawler {
     // Artwork location
     record.addField(
       'galleryInformation',
-      $('.artwork__location')
-        .first()
-        .text()
-        .trim()
+      $('.artwork__location').first().text().trim()
     );
     record.addField(
       'galleryInformationMessage',
-      $('.artwork__location--message')
-        .first()
-        .text()
-        .trim()
+      $('.artwork__location--message').first().text().trim()
     );
     record.addField(
       'galleryInformationGallery',
-      $('.artwork__location--gallery')
-        .first()
-        .text()
-        .trim()
+      $('.artwork__location--gallery').first().text().trim()
     );
     const $galleryInformationLink = $('.artwork__location--gallery a').first();
     if ($galleryInformationLink.length > 0) {
@@ -189,10 +163,7 @@ class MetMuseumCrawler extends BaseCrawler {
     // Facets
     const facets = {};
     $('.artwork__facets').each((i, elem) => {
-      const label = $(elem)
-        .find('label')
-        .first()
-        .text();
+      const label = $(elem).find('label').first().text();
 
       $(elem)
         .find('a')
@@ -204,28 +175,20 @@ class MetMuseumCrawler extends BaseCrawler {
           facets[label].push(value);
         });
     });
-    Object.keys(facets).forEach(label => {
+    Object.keys(facets).forEach((label) => {
       const values = facets[label];
       record.addField(label, values);
     });
 
     // Accordion items
     $('.component__accordions > .accordion').each((i, elem) => {
-      const label = $(elem)
-        .find('.accordion__header')
-        .first()
-        .text()
-        .trim();
+      const label = $(elem).find('.accordion__header').first().text().trim();
       if ($(elem).find('.link-list').length > 0) {
         const values = [];
         $(elem)
           .find('.link-list a')
           .each((j, link) => {
-            values.push(
-              `${$(link).attr('href')}|${$(link)
-                .text()
-                .trim()}`
-            );
+            values.push(`${$(link).attr('href')}|${$(link).text().trim()}`);
           });
         record.addField(label, values);
       } else {
@@ -234,11 +197,7 @@ class MetMuseumCrawler extends BaseCrawler {
           .first()
           .find('br')
           .replaceWith('\n');
-        const value = $(elem)
-          .find('.accordion__content')
-          .first()
-          .text()
-          .trim();
+        const value = $(elem).find('.accordion__content').first().text().trim();
         record.addField(label, value);
       }
     });
@@ -247,9 +206,7 @@ class MetMuseumCrawler extends BaseCrawler {
     const relatedObjects = [];
     $('.component__related-objects .card--collection').each((i, elem) => {
       // Title and URL
-      const $link = $(elem)
-        .find('.card__title a')
-        .first();
+      const $link = $(elem).find('.card__title a').first();
       const linkUrl = safeUrlResolve(
         'https://www.metmuseum.org/',
         $link.attr('href')
@@ -259,13 +216,13 @@ class MetMuseumCrawler extends BaseCrawler {
         relatedObjects.push({
           id: relatedNumber,
           url: linkUrl,
-          isRelated: true
+          isRelated: true,
         });
       }
     });
     record.addField(
       'relatedObjects',
-      relatedObjects.map(r => r.id)
+      relatedObjects.map((r) => r.id)
     );
 
     // Download the images

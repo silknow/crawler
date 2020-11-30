@@ -24,9 +24,9 @@ class UnipaCrawler extends BaseCrawler {
     const files = fs.readdirSync(this.resourcesPath);
     return Promise.all(
       files
-        .filter(f => f.endsWith('.json'))
-        .map(f => path.join(this.resourcesPath, f))
-        .map(filePath => this.parseFile(filePath))
+        .filter((f) => f.endsWith('.json'))
+        .map((f) => path.join(this.resourcesPath, f))
+        .map((filePath) => this.parseFile(filePath))
     );
   }
 
@@ -36,7 +36,7 @@ class UnipaCrawler extends BaseCrawler {
     const fileStream = fs.createReadStream(filePath);
     const rl = readline.createInterface({
       input: fileStream,
-      crlfDelay: Infinity
+      crlfDelay: Infinity,
     });
     for await (const line of rl) {
       const data = JSON.parse(line);
@@ -64,14 +64,14 @@ class UnipaCrawler extends BaseCrawler {
         this.resourcesPath,
         'images',
         path.basename(recordData.image)
-      )}`
+      )}`,
     });
 
     // Download the images
     await this.downloadRecordImages(record);
 
     // Remove local URLs since they are useless
-    record.images.forEach(image => delete image.url);
+    record.images.forEach((image) => delete image.url);
 
     return this.writeRecord(record);
   }

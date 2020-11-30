@@ -77,7 +77,7 @@ class ImatexCrawler extends BaseCrawler {
       tr$entorn$Avanc_Tec: '',
       tr$entorn$Avanc_Org: '',
       __VIEWSTATE: viewState,
-      __EVENTVALIDATION: eventValidation
+      __EVENTVALIDATION: eventValidation,
     });
     formData = formData.replace(/%20/g, '+');
 
@@ -100,7 +100,7 @@ class ImatexCrawler extends BaseCrawler {
 
       response = await this.axios.post(uri, formData, {
         headers: this.request.headers,
-        withCredentials: true
+        withCredentials: true,
       });
     } catch (err) {
       return Promise.reject(err);
@@ -125,7 +125,7 @@ class ImatexCrawler extends BaseCrawler {
     this.request.data = querystring.stringify({
       accio: 'cercaFitxesFotos',
       valor: currentPage + 1,
-      t: new Date().getMilliseconds()
+      t: new Date().getMilliseconds(),
     });
 
     return super.downloadNextPage();
@@ -169,7 +169,7 @@ class ImatexCrawler extends BaseCrawler {
         `${recordUrl}&t=${new Date().getMilliseconds()}`,
         {
           headers: this.request.headers,
-          withCredentials: true
+          withCredentials: true,
         }
       );
     } catch (err) {
@@ -185,23 +185,16 @@ class ImatexCrawler extends BaseCrawler {
 
     // Details
     $('#tr_entorn_taulaFitxa .etiqueta').each((i, elem) => {
-      const label = $(elem)
-        .text()
-        .trim();
+      const label = $(elem).text().trim();
 
-      const value = $(elem)
-        .next('td')
-        .text()
-        .trim();
+      const value = $(elem).next('td').text().trim();
 
       record.addField(label, value);
     });
 
     // Bibliography
     $('#tr_entorn_taulaBiblio tr:not(.titols) td').each((i, td) => {
-      const value = $(td)
-        .text()
-        .trim();
+      const value = $(td).text().trim();
       if (value.length > 0) {
         record.bibliography.push(value);
       }
@@ -209,9 +202,7 @@ class ImatexCrawler extends BaseCrawler {
 
     // Expositions
     $('#tr_entorn_taulaExpos tr:not(.titols) td').each((i, td) => {
-      const value = $(td)
-        .text()
-        .trim();
+      const value = $(td).text().trim();
       if (value.length > 0) {
         record.expositions.push(value);
       }
@@ -221,34 +212,21 @@ class ImatexCrawler extends BaseCrawler {
     $('#tr_entorn_taulaFitxes tr:not(.titols)').each((i, tr) => {
       const $tds = $(tr).children('td');
 
-      const $image = $tds
-        .eq(0)
-        .find('img')
-        .first();
-      const imageId = $image
-        .attr('id')
-        .split('_')
-        .pop()
-        .padStart(10, '0');
+      const $image = $tds.eq(0).find('img').first();
+      const imageId = $image.attr('id').split('_').pop().padStart(10, '0');
       const imageUrl = $image.attr('src').trim();
 
-      const registerNumber = $tds
-        .eq(1)
-        .text()
-        .trim();
+      const registerNumber = $tds.eq(1).text().trim();
 
-      const dimensions = $tds
-        .eq(2)
-        .text()
-        .trim();
+      const dimensions = $tds.eq(2).text().trim();
 
       record.otherPieces.push({
         image: {
           id: imageId,
-          url: url.resolve('http://imatex.cdmt.cat/_cat/', imageUrl)
+          url: url.resolve('http://imatex.cdmt.cat/_cat/', imageUrl),
         },
         registerNumber,
-        dimensions
+        dimensions,
       });
     });
 
@@ -278,7 +256,7 @@ class ImatexCrawler extends BaseCrawler {
           url: url.resolve(
             'http://imatex.cdmt.cat/_cat/',
             url.parse(imageUrl).pathname
-          )
+          ),
         });
       }
     });

@@ -10,10 +10,10 @@ module.exports = {
       const uniqueFields = [];
 
       const recordsFiles = files
-        .filter(f => f.endsWith('.json'))
-        .map(f => path.join(recordsPath, f));
+        .filter((f) => f.endsWith('.json'))
+        .map((f) => path.join(recordsPath, f));
 
-      recordsFiles.forEach(recordFile => {
+      recordsFiles.forEach((recordFile) => {
         let data;
         try {
           data = JSON.parse(fs.readFileSync(recordFile));
@@ -24,13 +24,13 @@ module.exports = {
 
         const fileFields = [];
 
-        data.fields.forEach(field => {
+        data.fields.forEach((field) => {
           if (!field.label) {
             console.error(
               `File ${recordFile} contains a field with no label, this should not happen!`
             );
           }
-          if (fileFields.filter(f => f.label === field.label).length > 0) {
+          if (fileFields.filter((f) => f.label === field.label).length > 0) {
             console.error(
               `Field "${field.label}" appears more than once for file ${recordFile}, this should not happen!`
             );
@@ -39,11 +39,11 @@ module.exports = {
           fileFields.push(field);
         });
 
-        fileFields.forEach(field => {
+        fileFields.forEach((field) => {
           // If the currently stored unique field has an empty value
           // then we try to replace it with another value that's not empty
           const existingField = uniqueFields
-            .filter(f => f.label === field.label)
+            .filter((f) => f.label === field.label)
             .pop();
           if (existingField) {
             if (
@@ -69,7 +69,7 @@ module.exports = {
       if (['md', 'markdown'].includes(format)) {
         output =
           '| Label | Sample Value | Sample File |\n| ----- | ------------ | ------------|\n';
-        uniqueFields.forEach(field => {
+        uniqueFields.forEach((field) => {
           let value = JSON.stringify(
             Array.isArray(field.values) ? field.values : field.value
           );
@@ -90,12 +90,12 @@ module.exports = {
       console.log(output);
 
       if (argv.output) {
-        fs.writeFile(path.resolve(argv.output), output, error => {
+        fs.writeFile(path.resolve(argv.output), output, (error) => {
           if (error) {
             throw error;
           }
         });
       }
     });
-  }
+  },
 };

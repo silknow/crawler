@@ -68,26 +68,16 @@ class MfaBostonCrawler extends BaseCrawler {
     // Fields (title, medium/techniques, dimensions, credit line, ...)
     $('.detailField').each((i, elem) => {
       if ($(elem).find('.detailFieldLabel').length > 0) {
-        const label = $(elem)
-          .find('.detailFieldLabel')
-          .first()
-          .text()
-          .trim();
-        const value = $(elem)
-          .find('.detailFieldValue')
-          .first()
-          .text()
-          .trim();
+        const label = $(elem).find('.detailFieldLabel').first().text().trim();
+        const value = $(elem).find('.detailFieldValue').first().text().trim();
         record.addField(label, value);
       } else {
         const label = $(elem)
           .attr('class')
           .split(' ')
-          .filter(c => c.includes('Field') && c !== 'detailField')
+          .filter((c) => c.includes('Field') && c !== 'detailField')
           .pop();
-        const value = $(elem)
-          .text()
-          .trim();
+        const value = $(elem).text().trim();
         record.addField(label, value);
       }
     });
@@ -110,14 +100,11 @@ class MfaBostonCrawler extends BaseCrawler {
 
     // Secondary images
     $('.secondarymedia-item').each((i, elem) => {
-      const imageId = $(elem)
-        .find('> a')
-        .first()
-        .attr('data-media-id');
+      const imageId = $(elem).find('> a').first().attr('data-media-id');
       const imageUrl = `https://collections.mfa.org/internal/media/dispatcher/${imageId}/resize%3Aformat%3Dfull`;
       record.addImage({
         id: imageId,
-        url: imageUrl
+        url: imageUrl,
       });
     });
 

@@ -15,7 +15,7 @@ class Record {
     if (!field) {
       this.fields.push({
         label,
-        [Array.isArray(value) ? 'values' : 'value']: value
+        [Array.isArray(value) ? 'values' : 'value']: value,
       });
     } else {
       if (typeof field.value !== 'undefined') {
@@ -23,7 +23,7 @@ class Record {
         delete field.value;
       }
       if (!Array.isArray(field.values)) {
-        field.values = [field.values].filter(f => f);
+        field.values = [field.values].filter((f) => f);
       }
       field.values.push(...(Array.isArray(value) ? value : [value]));
     }
@@ -34,7 +34,7 @@ class Record {
       return false;
     }
     // Do not add duplicates
-    if (image.url && this.images.some(img => img.url === image.url)) {
+    if (image.url && this.images.some((img) => img.url === image.url)) {
       return false;
     }
     this.images.push(image);
@@ -46,7 +46,7 @@ class Record {
   }
 
   getFieldByLabel(label) {
-    return this.fields.find(f => f.label === label);
+    return this.fields.find((f) => f.label === label);
   }
 
   getFields() {
