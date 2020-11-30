@@ -9,6 +9,7 @@ const ImatexCrawler = require('./imatex');
 const JocondeCrawler = require('./joconde');
 const UnipaCrawler = require('./unipa');
 const MobilierInternationalCrawler = require('./mobilier-international');
+const SmithsonianCrawler = require('./smithsonian');
 
 module.exports = {
   LesArtsDecoratifsCrawler,
@@ -21,5 +22,6 @@ module.exports = {
   ImatexCrawler,
   JocondeCrawler,
   UnipaCrawler,
-  MobilierInternationalCrawler
+  MobilierInternationalCrawler,
+  SmithsonianCrawler
 };

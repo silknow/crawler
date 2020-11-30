@@ -35,6 +35,7 @@ Available parameters:
 * `vam` - Victoria and Albert Museum
 * `unipa` - Museo Diocesano Di Palermo
 * `mobilier-international` - Collection of the Mobilier national in France
+* `smithsonian` - Smithsonian Institution
 
 Crawled JSON structure of each museum can be found [here](https://github.com/silknow/crawler/wiki/Crawlers-JSON-Structure)
 
