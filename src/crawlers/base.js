@@ -51,6 +51,7 @@ class BaseCrawler {
 
   start() {
     this.currentOffset = 0;
+    this.currentPage = this.startPage;
 
     return this.downloadNextPage();
   }
