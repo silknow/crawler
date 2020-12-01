@@ -33,6 +33,9 @@ class Record {
     if (!image) {
       return false;
     }
+    if (image.url instanceof URL) {
+      image.url = image.url.toString();
+    }
     // Do not add duplicates
     if (image.url && this.images.some((img) => img.url === image.url)) {
       return false;
