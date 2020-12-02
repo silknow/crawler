@@ -36,6 +36,7 @@ Available parameters:
 * `unipa` - Museo Diocesano Di Palermo
 * `mobilier-international` - Collection of the Mobilier national in France
 * `smithsonian` - Smithsonian Institution
+* `paris-musees` - Paris Musées
 
 Crawled JSON structure of each museum can be found [here](https://github.com/silknow/crawler/wiki/Crawlers-JSON-Structure)
 
@@ -44,6 +45,12 @@ Crawled JSON structure of each museum can be found [here](https://github.com/sil
 The UNIPA crawler parses local files only. It requires a database.json along with an images folder. The data has to be stored in `data/unipa/resources`.
 
 Link to the dataset: https://www.dropbox.com/sh/a8zzv22r59q67eq/AAB4SOAGf1byLFwakYkzbcYFa?dl=0
+
+### Notes about Paris Musées
+
+The Paris Musées API requires to generate a token by following the [Paris Musées API documentation](https://www.parismuseescollections.paris.fr/fr/se-connecter-a-l-api).
+
+Once a token has bene obtained, add the environment variable `PARIS_MUSEES_TOKEN=<token>` (replace `<token>` with the token) before running the crawler.
 
 ## Development
 Add the environment variable `DEBUG=silknow:*` to also output the debug logs.
