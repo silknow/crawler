@@ -78,20 +78,22 @@ class BaseCrawler {
       this.request.params[this.paging.limit] = this.limit;
     }
 
-    debug('Request: %o', this.request);
+    if (this.request.url) {
+      debug('Request: %o', this.request);
 
-    let response;
-    try {
-      response = await this.axios(this.request);
-    } catch (err) {
-      return Promise.reject(err);
-    }
+      let response;
+      try {
+        response = await this.axios(this.request);
+      } catch (err) {
+        return Promise.reject(err);
+      }
 
-    // Process the search result
-    try {
-      await this.onSearchResult(response.data);
-    } catch (err) {
-      return Promise.reject(err);
+      // Process the search result
+      try {
+        await this.onSearchResult(response.data);
+      } catch (err) {
+        return Promise.reject(err);
+      }
     }
 
     if (this.currentPage >= this.totalPages) {
