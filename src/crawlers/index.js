@@ -12,6 +12,7 @@ const MobilierInternationalCrawler = require('./mobilier-international');
 const SmithsonianCrawler = require('./smithsonian');
 const VenetianCrawler = require('./venetian');
 const VersaillesCrawler = require('./versailles');
+const ParisMuseesCrawler = require('./paris-musees');
 
 module.exports = {
   LesArtsDecoratifsCrawler,
@@ -28,4 +29,5 @@ module.exports = {
   SmithsonianCrawler,
   VenetianCrawler,
   VersaillesCrawler,
+  ParisMuseesCrawler,
 };
