@@ -31,6 +31,12 @@ class ParisMuseesCrawler extends BaseCrawler {
   constructor(argv) {
     super(argv);
 
+    if (typeof process.env.PARIS_MUSEES_TOKEN === 'undefined') {
+      throw new Error(
+        'Environment variable PARIS_MUSEES_TOKEN must be declared with a valid token. See https://github.com/silknow/crawler#notes-about-paris-mus%C3%A9es for more details.'
+      );
+    }
+
     this.limit = 20;
 
     this.conditionsList = [
