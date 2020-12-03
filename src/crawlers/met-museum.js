@@ -14,8 +14,17 @@ class MetMuseumCrawler extends BaseCrawler {
   constructor(argv) {
     super(argv);
 
+    if (typeof process.env.MET_MUSEUM_COOKIE === 'undefined') {
+      throw new Error(
+        'Environment variable MET_MUSEUM_COOKIE must be declared with a valid token. See https://github.com/silknow/crawler#notes-about-met-museum for more details.'
+      );
+    }
+
     this.request.url =
       'https://www.metmuseum.org/api/collection/collectionlisting?artist=&department=12&era=&geolocation=&material=Silk%7CTextiles&pageSize=0&showOnly=withImage&sortBy=AccessionNumber';
+    this.request.headers = {
+      cookie: process.env.MET_MUSEUM_COOKIE,
+    };
     this.paging.offset = 'offset';
     this.paging.limit = 'perPage';
     this.limit = 100;

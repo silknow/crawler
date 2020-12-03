@@ -52,5 +52,13 @@ The Paris Musées API requires to generate a token by following the [Paris Musé
 
 Once a token has bene obtained, add the environment variable `PARIS_MUSEES_TOKEN=<token>` (replace `<token>` with the token) before running the crawler.
 
+### Notes about MET Museum
+
+MET Museum implements an anti-scrapping strategy which requires to first open [this page](https://www.metmuseum.org/api/collection/collectionlisting?perPage=1) into a web browser, then open the browser's inspector and type in the console: `document.cookie` to get the cookies. It should look like this: `"incap_ses_XXX_XXXXXXX=abcDEFgHIjkLmNoPQrSTUvWxyZABCDEFGHijklMNOPqrSTUVwXYZAb=="`.
+
+Finally, add the environment variable `MET_MUSEUM_COOKIE="incap_ses_XXX_XXXXXXX=abcDEFgHIjkLmNoPQrSTUvWxyZABCDEFGHijklMNOPqrSTUVwXYZAb=="` (replace with your own cookie) before running the crawler.
+
+This cookie is only valid for a limited amount of time, but it should be enough to crawl the entire collection.
+
 ## Development
 Add the environment variable `DEBUG=silknow:*` to also output the debug logs.
