@@ -286,6 +286,18 @@ class ParisMuseesCrawler extends BaseCrawler {
             endDay
             century
           }
+          fieldDateAcquisition {
+            startPrecision
+            startYear
+            startMonth
+            startDay
+            sort
+            endPrecision
+            endYear
+            endMonth
+            endDay
+            century
+          }
           fieldOeuvreTypesObjet {
             entity {
               entityId
@@ -370,6 +382,11 @@ class ParisMuseesCrawler extends BaseCrawler {
             entity {
               entityId
               name
+              description {
+                value
+                format
+                processed
+              }
             }
           }
           fieldMusee {
@@ -393,6 +410,122 @@ class ParisMuseesCrawler extends BaseCrawler {
                 lat
                 lng
               }
+            }
+          }
+          fieldCommentaireHistorique {
+            value
+            format
+            processed
+          }
+          fieldOeuvreCommentaireLieu {
+            value
+            format
+            processed
+          }
+          fieldOeuvreSiecle {
+            entity {
+              tid
+              name
+            }
+          }
+          fieldOeuvreDateDecouverte {
+            startPrecision
+            startYear
+            startMonth
+            startDay
+            sort
+            endPrecision
+            endYear
+            endMonth
+            endDay
+            century
+          }
+          fieldDescription {
+            value
+            format
+            processed
+          }
+          fieldOeuvreDescriptionIcono {
+            value
+            format
+            processed
+          }
+          fieldDocumentations {
+            entity {
+              entityId
+              fieldRessAnnee
+              fieldRessInMois
+              fieldRessIssn
+              fieldRessIssnL
+              fieldRessNumero
+              fieldRessNumeroFascicule
+              fieldRessPagination
+              fieldRessPeriodicite
+              fieldRessTomaison
+              fieldRessTome
+              fieldRessTypeDeDocument
+              fieldRessTypeDeNotice
+              fieldRessVolume
+              titleField
+            }
+          }
+          fieldDenominations {
+            entity {
+              entityId
+              name
+            }
+          }
+          fieldOeuvreFonction {
+            entity {
+              entityId
+              name
+            }
+          }
+          fieldOeuvreLieuxDecouvertes {
+            entity {
+              entityId
+              name
+            }
+          }
+          fieldOeuvreLieuxProductions {
+            entity {
+              entityId
+              name
+            }
+          }
+          fieldNumeroObjet
+          fieldOeuvreNumInventaire
+          fieldPersonnesConcernees {
+            entity {
+              entityId
+              name
+            }
+          }
+          fieldOeuvreStyleMouvement {
+            entity {
+              entityId
+              name
+            }
+          }
+          fieldSujetsConcernes {
+            entity {
+              entityId
+              name
+            }
+          }
+          titleField
+          fieldOeuvreTitres {
+            entity {
+              entityId
+              title
+              fieldTitreNatureTitre
+              fieldTitreTitre
+            }
+          }
+          fieldOeuvreEpoquePeriode {
+            entity {
+              entityId
+              name
             }
           }
         }
