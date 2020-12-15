@@ -174,6 +174,12 @@ class ParisMuseesCrawler extends BaseCrawler {
         `${dim.entity.fieldDimensionType.entity.name}.${dim.entity.fieldDimensionPartie.entity.name}`
       ] = `${dim.entity.fieldDimensionValeur} ${dim.entity.fieldDimensionUnite.entity.name}`;
     });
+    fields.fieldDocumentations = recordData.fieldDocumentations
+      .map((f) => f.entity.titleField)
+      .filter((x) => x);
+    fields.fieldOeuvreTitres = recordData.fieldOeuvreTitres.map(
+      (f) => f.entity.fieldTitreTitre
+    );
 
     // Add original record data at the end, as non-flattened objects, in a 'raw' property
     record.raw = recordData;
@@ -424,7 +430,7 @@ class ParisMuseesCrawler extends BaseCrawler {
           }
           fieldOeuvreSiecle {
             entity {
-              tid
+              entityId
               name
             }
           }
