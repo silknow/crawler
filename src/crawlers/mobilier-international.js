@@ -67,6 +67,37 @@ class MobilierInternationalCrawler extends BaseCrawler {
         }
       });
 
+    // Add complex array fields
+    recordData.product_types.forEach((productType) => {
+      if (productType.name !== null) {
+        record.addField('product_types', productType.name);
+      }
+    });
+    recordData.authors.forEach((author) => {
+      const authorFullName = [author.first_name, author.last_name]
+        .filter((x) => x !== null) // remove null values
+        .join(' ') // concatenate
+        .trim();
+      if (authorFullName.length > 0) {
+        record.addField('authors', authorFullName);
+      }
+    });
+    recordData.materials.forEach((material) => {
+      if (material.name !== null) {
+        record.addField('materials', material.name);
+      }
+    });
+    const productionOrigins =
+      typeof recordData.production_origin === 'object' &&
+      !Array.isArray(recordData.production_origin)
+        ? [recordData.production_origin]
+        : recordData.production_origin;
+    productionOrigins.forEach((productionOrigin) => {
+      if (productionOrigin !== null && productionOrigin.name !== null) {
+        record.addField('production_origin', productionOrigin.name);
+      }
+    });
+
     // Images
     recordData.images.forEach((image) => {
       record.addImage({
