@@ -71,7 +71,9 @@ class MetMuseumCrawler extends BaseCrawler {
     debug('Downloading record %s', recordNumber);
     let response;
     try {
-      response = await this.axios.get(recordUrl);
+      response = await this.axios.get(recordUrl, {
+        headers: this.request.headers,
+      });
     } catch (err) {
       return Promise.reject(err);
     }
@@ -81,36 +83,32 @@ class MetMuseumCrawler extends BaseCrawler {
     const record = new Record(recordNumber, recordUrl);
 
     // Images
-    if ($('.artwork--not-openaccess ').length > 0) {
-      // Images are restricted (hosted on collectionapi.metmuseum.org instead of images.metmuseum.org)
-      $('.artwork__image').each((i, elem) => {
-        const imageUrl = $(elem).attr('src');
-        if (imageUrl.length > 0) {
-          record.addImage({
-            id: '',
-            url: imageUrl,
-          });
-        }
-      });
-    } else if ($('.met-carousel__item__thumbnail').length === 0) {
+    if ($('.met-carousel__item__thumbnail').length === 0) {
       // No carousel, only a single picture
       // The original image URL is in the download button
+      const elem = $('img.artwork__image').first();
       const imageUrl = safeUrlResolve(
         'https://images.metmuseum.org/CRDImages/',
-        $('.the-artwork__meta .gtm__download__image').first().attr('href')
+        $(elem).attr('src')
       );
       if (imageUrl) {
         record.addImage({
           id: '',
           url: imageUrl,
+          title: $(elem).attr('title'),
+          description: $(elem).attr('alt'),
         });
       }
     } else {
       // Carousel, loop through all photo and get the original image URL of each photo
       $('.met-carousel__item__thumbnail').each((i, elem) => {
+        const imageUrlAttr =
+          $(elem).attr('data-openaccess') === 'False'
+            ? 'data-largeimage'
+            : 'data-superjumboimage';
         const imageUrl = safeUrlResolve(
           'https://images.metmuseum.org/CRDImages/',
-          $(elem).attr('data-superjumboimage')
+          $(elem).attr(imageUrlAttr)
         );
         if (imageUrl) {
           record.addImage({
@@ -119,16 +117,18 @@ class MetMuseumCrawler extends BaseCrawler {
             title: $(elem).attr('title'),
             description: $(elem).attr('alt'),
           });
+        } else {
+          throw new Error(
+            `Could not get data-superjumboimage for ${recordNumber}`
+          );
         }
       });
     }
 
     // Add details fields from the web page
-    $('.artwork__tombstone--row').each((i, elem) => {
-      const label = $(elem).find('.artwork__tombstone--label').first().text();
-
-      const value = $(elem).find('.artwork__tombstone--value').first().text();
-
+    $('.artwork-tombstone--item').each((i, elem) => {
+      const label = $(elem).find('.artwork-tombstone--label').first().text();
+      const value = $(elem).find('.artwork-tombstone--value').first().text();
       record.addField(label, value);
     });
 
@@ -171,8 +171,8 @@ class MetMuseumCrawler extends BaseCrawler {
 
     // Facets
     const facets = {};
-    $('.artwork__facets').each((i, elem) => {
-      const label = $(elem).find('label').first().text();
+    $('.artwork-facet').each((i, elem) => {
+      const label = $(elem).find('.artwork-facet__name').first().text();
 
       $(elem)
         .find('a')
@@ -190,12 +190,12 @@ class MetMuseumCrawler extends BaseCrawler {
     });
 
     // Accordion items
-    $('.component__accordions > .accordion').each((i, elem) => {
+    $('.accordions > .accordion').each((i, elem) => {
       const label = $(elem).find('.accordion__header').first().text().trim();
-      if ($(elem).find('.link-list').length > 0) {
+      if ($(elem).find('.accordion__link-list').length > 0) {
         const values = [];
         $(elem)
-          .find('.link-list a')
+          .find('.accordion__link-list a')
           .each((j, link) => {
             values.push(`${$(link).attr('href')}|${$(link).text().trim()}`);
           });
@@ -213,7 +213,7 @@ class MetMuseumCrawler extends BaseCrawler {
 
     // Related objects
     const relatedObjects = [];
-    $('.component__related-objects .card--collection').each((i, elem) => {
+    $('.related-artwork').each((i, elem) => {
       // Title and URL
       const $link = $(elem).find('.card__title a').first();
       const linkUrl = safeUrlResolve(
