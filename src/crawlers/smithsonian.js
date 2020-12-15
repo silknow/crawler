@@ -69,20 +69,23 @@ class SmithsonianCrawler extends BaseCrawler {
 
     // Fields
     $('.recordDetails dl').each((i, dl) => {
-      let label = $(dl).find('dt').first().text().trim();
-      if (!label.length) {
-        label =
-          $(dl)
-            .attr('class')
-            .trim()
-            .split(/\s+/)
-            .filter((cls) => cls.indexOf('field-') === 0)
-            .map((cls) => cls.substr('field-'.length))
-            .shift() || '';
-      }
       $(dl)
         .find('dd')
         .each((j, dd) => {
+          const $dt = $(dd).prev('dt');
+          let label;
+          if ($dt.length) {
+            label = $dt.text().trim();
+          } else {
+            label =
+              $(dl)
+                .attr('class')
+                .trim()
+                .split(/\s+/)
+                .filter((cls) => cls.indexOf('field-') === 0)
+                .map((cls) => cls.substr('field-'.length))
+                .shift() || '';
+          }
           record.addField(label, $(dd).text().trim());
         });
     });
