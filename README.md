@@ -22,6 +22,7 @@ Available parameters:
 | --no-files | Do not download files such as photos |
 | --no-records | Do not write the JSON records |
 | --list-fields | Returns a list of unique fields from JSON records. Also takes a --format parameter (values: "md" or "markdown" for Markdown, "json" for JSON, defaults to Markdown) |
+| --check-images | Re-download images marked with the `hasError` flag |
 
 ## List of museums
 * `ceres-mcu` - Red Digital de Colecciones de Museos de España

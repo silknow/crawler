@@ -2,6 +2,7 @@ const { argv } = require('yargs');
 
 const crawlers = require('./crawlers');
 const FieldsLister = require('./fields-lister');
+const ImagesChecker = require('./images-checker');
 
 process.on('unhandledRejection', (err) => {
   throw err;
@@ -33,6 +34,10 @@ if (!targetCrawlers.length) {
         if (argv.listFields) {
           // List unique fields in already crawled data
           await FieldsLister.list(Crawler.id, argv);
+        } else if (argv.checkImages) {
+          // Re-download images marked with the `hasError` flag
+          const crawler = new Crawler(argv);
+          await ImagesChecker.check(crawler, argv);
         } else {
           // Crawl
           const crawler = new Crawler(argv);
