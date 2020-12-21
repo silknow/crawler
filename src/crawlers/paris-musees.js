@@ -2,27 +2,7 @@ const debug = require('debug')('silknow:crawlers:paris-musees');
 
 const BaseCrawler = require('./base');
 const Record = require('../models/record');
-
-const flattenObject = (ob) => {
-  const finalObj = {};
-
-  // Flatten non-array fields
-  Object.keys(ob).forEach((k) => {
-    if (Array.isArray(ob[k]) || ob[k] === null) {
-      return;
-    }
-    if (typeof ob[k] === 'object' && ob[k] !== null && !Array.isArray(ob[k])) {
-      const flatObject = flattenObject(ob[k]);
-      Object.keys(flatObject).forEach((x) => {
-        finalObj[`${k}.${x}`] = flatObject[x];
-      });
-    } else {
-      finalObj[k] = ob[k];
-    }
-  });
-
-  return finalObj;
-};
+const Utils = require('../helpers/utils');
 
 const arrayMatches = (arr, target) =>
   target.length === arr.length && target.every((v) => arr.includes(v));
@@ -143,7 +123,7 @@ class ParisMuseesCrawler extends BaseCrawler {
 
     const record = new Record(recordNumber, recordUrl);
 
-    const fields = flattenObject(recordData);
+    const fields = Utils.flattenObject(recordData);
 
     // Add simple fields as arrays
     Object.keys(recordData).forEach((k) => {

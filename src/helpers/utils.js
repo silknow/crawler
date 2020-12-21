@@ -67,6 +67,31 @@ class Utils {
         })
     );
   }
+
+  static flattenObject(ob) {
+    const finalObj = {};
+
+    // Flatten non-array fields
+    Object.keys(ob).forEach((k) => {
+      if (Array.isArray(ob[k]) || ob[k] === null) {
+        return;
+      }
+      if (
+        typeof ob[k] === 'object' &&
+        ob[k] !== null &&
+        !Array.isArray(ob[k])
+      ) {
+        const flatObject = this.flattenObject(ob[k]);
+        Object.keys(flatObject).forEach((x) => {
+          finalObj[`${k}.${x}`] = flatObject[x];
+        });
+      } else {
+        finalObj[k] = ob[k];
+      }
+    });
+
+    return finalObj;
+  }
 }
 
 module.exports = Utils;
