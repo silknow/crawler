@@ -192,14 +192,15 @@ class BaseCrawler {
     });
   }
 
-  async downloadRecordImages(record) {
+  async downloadRecordImages(record, options) {
     const sanitizedRecordNumber = filenamify(record.getId());
     for (const [index, image] of record.getImages().entries()) {
       image.localFilename = `${sanitizedRecordNumber}_${index}.jpg`;
       try {
         const filePath = await this.downloadFile(
           image.url,
-          image.localFilename
+          image.localFilename,
+          options
         );
         const fileBuffer = await readChunk(filePath, 0, 12);
         if (imageType(fileBuffer) === null) {
