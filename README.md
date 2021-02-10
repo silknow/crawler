@@ -38,6 +38,7 @@ Available parameters:
 * `mobilier-international` - Collection of the Mobilier national in France
 * `smithsonian` - Smithsonian Institution
 * `paris-musees` - Paris Musées
+* `gallica` - Gallica
 
 Crawled JSON structure of each museum can be found [here](https://github.com/silknow/crawler/wiki/Crawlers-JSON-Structure)
 
