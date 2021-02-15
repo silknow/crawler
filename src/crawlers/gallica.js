@@ -1,4 +1,4 @@
-const debug = require('debug')('silknow:crawlers:les-arts-decoratifs');
+const debug = require('debug')('silknow:crawlers:gallica');
 const cheerio = require('cheerio');
 const url = require('url');
 
