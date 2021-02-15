@@ -62,5 +62,11 @@ Finally, add the environment variable `MET_MUSEUM_COOKIE="incap_ses_XXX_XXXXXXX=
 
 This cookie is only valid for a limited amount of time, but it should be enough to crawl the entire collection.
 
+### Notes about Musée d'Art et d'Industrie (St Etienne)
+
+The Musée d'Art et d'Industrie (St Etienne) crawler parses local files only. It requires a `export silknow.tsv` file along with an `media` folder. The data has to be stored in `data/musee-st-etienne/resources`.
+
+Link to the dataset: https://drive.google.com/drive/folders/1V-p9cJ-lNtUtGHW1ePv_k4rLsd_xbbyb
+
 ## Development
 Add the environment variable `DEBUG=silknow:*` to also output the debug logs.
