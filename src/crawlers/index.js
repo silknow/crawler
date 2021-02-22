@@ -16,6 +16,7 @@ const ParisMuseesCrawler = require('./paris-musees');
 const GallicaCrawler = require('./gallica');
 const MuseeStEtienneCrawler = require('./musee-st-etienne');
 const ArticCrawler = require('./artic');
+const EuropeanaCrawler = require('./europeana');
 
 module.exports = {
   LesArtsDecoratifsCrawler,
@@ -36,4 +37,5 @@ module.exports = {
   GallicaCrawler,
   MuseeStEtienneCrawler,
   ArticCrawler,
+  EuropeanaCrawler,
 };

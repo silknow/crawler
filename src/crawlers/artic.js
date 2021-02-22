@@ -124,7 +124,7 @@ class ArticCrawler extends BaseCrawler {
     }
 
     // Exhibition History
-    const $exhibitionHistory = $('#panel_exhibition-history-history').first();
+    const $exhibitionHistory = $('#panel_exhibition-history').first();
     if ($exhibitionHistory.length) {
       const exhibitionList = [];
       if ($exhibitionHistory.find('li').length > 0) {
