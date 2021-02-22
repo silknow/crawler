@@ -109,6 +109,34 @@ class ArticCrawler extends BaseCrawler {
         });
     });
 
+    // Publication History
+    const $publicationHistory = $('#panel_publication-history').first();
+    if ($publicationHistory.length) {
+      const publicationList = [];
+      if ($publicationHistory.find('li').length > 0) {
+        $publicationHistory.find('li').each((i, elem) => {
+          publicationList.push($(elem).text().trim());
+        });
+      } else {
+        publicationList.push($publicationHistory.text().trim());
+      }
+      record.addField('publication-history', publicationList);
+    }
+
+    // Exhibition History
+    const $exhibitionHistory = $('#panel_exhibition-history-history').first();
+    if ($exhibitionHistory.length) {
+      const exhibitionList = [];
+      if ($exhibitionHistory.find('li').length > 0) {
+        $exhibitionHistory.find('li').each((i, elem) => {
+          exhibitionList.push($(elem).text().trim());
+        });
+      } else {
+        exhibitionList.push($exhibitionHistory.text().trim());
+      }
+      record.addField('exhibition-history', exhibitionList);
+    }
+
     // Images
     const licenseText = $('.m-article-header__img-credit').text().trim();
     $('.m-article-header__img img').each((i, img) => {
