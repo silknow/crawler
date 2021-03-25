@@ -71,7 +71,7 @@ module.exports = {
           '| Label | Sample Value | Sample File |\n| ----- | ------------ | ------------|\n';
         uniqueFields.forEach((field) => {
           let value = JSON.stringify(
-            Array.isArray(field.values) ? field.values : field.value
+            Array.isArray(field.values) ? field.values : field.value || ''
           );
           if (value.length > 600) {
             value = `${value.substr(0, 600)}…`;
