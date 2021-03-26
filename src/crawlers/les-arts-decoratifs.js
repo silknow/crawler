@@ -11,7 +11,7 @@ class LesArtsDecoratifsCrawler extends BaseCrawler {
     super(argv);
 
     this.request.url =
-      'http://collections.lesartsdecoratifs.fr/textile?f[0]=field_hasmainmedia%3AAvec%20image%28s%29';
+      'http://collections.madparis.fr/textile?f[0]=field_hasmainmedia%3AAvec%20image%28s%29';
     this.paging.page = 'page';
     this.paging.limit = 'items_per_page';
     this.limit = 60;
