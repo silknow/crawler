@@ -77,42 +77,62 @@ class LesArtsDecoratifsCrawler extends BaseCrawler {
           .map((cls) => cls.substr('field-name-'.length))
           .shift() || null;
 
-      const fieldLabel = $(elem).find('.field-label').first().text().trim();
+      const fieldLabel = $(elem)
+        .find('.field-label')
+        .contents()
+        .first()
+        .text()
+        .trim();
 
       const fieldItems = [];
       $(elem)
         .find('.field-item')
         .each((j, item) => {
-          if ($(item).children('a').length > 0) {
-            $(item)
-              .children('a')
-              .each((k, link) => {
-                fieldItems.push($(link).text());
-              });
-          }
+          $(item)
+            .find('.sk-node-link')
+            .each((k, node) => {
+              const link = $(node).parent().prev('a');
+              fieldItems.push(
+                `Author: ${$(link).text()} - Role: ${$(node)
+                  .parent()[0]
+                  .next.data.replace(/^(,|\s)+|(,|\s)+$/g, '')
+                  .trim()}`
+              );
+            });
+
+          $(item)
+            .children('a')
+            .each((k, link) => {
+              fieldItems.push($(link).text());
+            });
 
           if ($(item).children('img').length > 0) {
             $(item)
               .children('img')
               .each((k, img) => {
                 const imageUrl = $(img).attr('src');
-                record.addImage({
-                  id: '',
-                  url: imageUrl,
-                });
-                fieldItems.push(imageUrl);
+                if (imageUrl.length > 0) {
+                  record.addImage({
+                    id: '',
+                    url: imageUrl,
+                  });
+                  fieldItems.push(imageUrl);
+                }
               });
           }
 
           if (fieldItems.length === 0) {
             // Replace <br> with newlines
             $(item).find('br').replaceWith('\n');
-            fieldItems.push($(item).text());
+            fieldItems.push($(item).text().trim());
           }
         })
         .get();
 
-      record.addField(fieldLabel || fieldType || '', fieldItems);
+      record.addField(
+        fieldLabel || fieldType || '',
+        fieldItems.filter((x) => x.trim())
+      );
     });
 
     // Download the images
