@@ -89,21 +89,17 @@ class LesArtsDecoratifsCrawler extends BaseCrawler {
         .find('.field-item')
         .each((j, item) => {
           $(item)
-            .find('.sk-node-link')
-            .each((k, node) => {
-              const link = $(node).parent().prev('a');
-              fieldItems.push(
-                `Author: ${$(link).text()} - Role: ${$(node)
-                  .parent()[0]
-                  .next.data.replace(/^(,|\s)+|(,|\s)+$/g, '')
-                  .trim()}`
-              );
-            });
-
-          $(item)
             .children('a')
             .each((k, link) => {
-              fieldItems.push($(link).text());
+              if ($(link).next().find('.sk-node-link').length > 0) {
+                fieldItems.push(
+                  `Author: ${$(link).text()} - Role: ${$(link)[0]
+                    .next.next.data.replace(/^(,|\s)+|(,|\s)+$/g, '')
+                    .trim()}`
+                );
+              } else {
+                fieldItems.push($(link).text());
+              }
             });
 
           if ($(item).children('img').length > 0) {
