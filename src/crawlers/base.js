@@ -46,6 +46,13 @@ class BaseCrawler {
     axiosRetry(this.axios, {
       retries: 10,
       retryDelay: axiosRetry.exponentialDelay,
+      shouldResetTimeout: true,
+      retryCondition: (error) => {
+        return (
+          axiosRetry.isNetworkOrIdempotentRequestError(error) ||
+          error.code === 'ECONNABORTED'
+        );
+      },
     });
   }
 
