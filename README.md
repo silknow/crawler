@@ -25,7 +25,7 @@ Available parameters:
 | --check-images | Re-download images marked with the `hasError` flag |
 
 ## List of museums
-* `artic` - 
+* `artic` - Art Institute of Chicago
 * `ceres-mcu` - Red Digital de Colecciones de Museos de España
 * `el-tesoro` - Museo de Arte Sacro El Tesoro de la Concepción
 * `europeana` - Europeana
