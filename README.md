@@ -25,20 +25,25 @@ Available parameters:
 | --check-images | Re-download images marked with the `hasError` flag |
 
 ## List of museums
+* `artic` - 
 * `ceres-mcu` - Red Digital de Colecciones de Museos de España
+* `europeana` - 
+* `gallica` - Gallica
+* `garin` - Garín 1820
 * `imatex` - Centre de Documentació i Museu Tèxtil
-* `joconde` - Collections des musées de France : Joconde
+* `joconde` - Joconde Database of French Museum Collections
 * `les-arts-decoratifs` - Musée des Arts Décoratifs
 * `met-museum` - The Metropolitan Museum of Art
-* `mfa-boston` - Museum of Fine Arts, Boston
-* `mtmad` - Musée des Tissus
-* `risd-museum` - Rhode Island School of Design Museum
-* `vam` - Victoria and Albert Museum
-* `unipa` - Museo Diocesano Di Palermo
+* `mfa-boston` - Boston Museum of Fine Arts
 * `mobilier-international` - Collection of the Mobilier national in France
-* `smithsonian` - Smithsonian Institution
+* `mtmad` - Musée des Tissus
 * `paris-musees` - Paris Musées
-* `gallica` - Gallica
+* `risd-museum` - Rhode Island School of Design Museum
+* `smithsonian` - Smithsonian
+* `unipa` - Sicily Cultural Heritage
+* `vam` - Victoria and Albert Museum
+* `venezia` - Musei di Venezia
+* `versailles` - Versailles
 
 Crawled JSON structure of each museum can be found [here](https://github.com/silknow/crawler/wiki/Crawlers-JSON-Structure)
 
