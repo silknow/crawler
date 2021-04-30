@@ -27,7 +27,8 @@ Available parameters:
 ## List of museums
 * `artic` - 
 * `ceres-mcu` - Red Digital de Colecciones de Museos de España
-* `europeana` - 
+* `el-tesoro` - Museo de Arte Sacro El Tesoro de la Concepción
+* `europeana` - Europeana
 * `gallica` - Gallica
 * `garin` - Garín 1820
 * `imatex` - Centre de Documentació i Museu Tèxtil
