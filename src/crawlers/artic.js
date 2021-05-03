@@ -13,20 +13,27 @@ class ArticCrawler extends BaseCrawler {
 
     this.request.method = 'get';
     this.request.url = 'https://www.artic.edu/collection';
-    this.request.params = {
-      department_ids: 'Textiles',
-      material_ids: 'silk (fiber)',
-      is_public_domain: '1',
-      'date-start': '1400',
-      'date-end': '1900',
-      classification_ids: 'weaving;textile',
-    };
     this.startPage = 1;
     this.limit = 54;
     this.paging.page = 'page';
+
+    this.paramsList = [
+      {
+        department_ids: 'Textiles',
+        material_ids: 'silk (fiber)',
+        is_public_domain: '1',
+        'date-start': '1400',
+        'date-end': '1900',
+        classification_ids: 'weaving;textile',
+      },
+      {
+        q: 'Mise-en-carte (point-paper)',
+      },
+    ];
   }
 
   async start() {
+    this.request.params = this.paramsList.shift();
     this.request.params.place_ids = this.placesList.shift();
     return super.start();
   }
@@ -55,9 +62,15 @@ class ArticCrawler extends BaseCrawler {
       if (typeof place !== 'undefined') {
         console.log('Switching to place', place);
         this.request.params.place_ids = place;
-        this.currentOffset = 0;
-        this.currentPage = this.startPage;
-        this.totalPages = this.startPage + 1;
+        this.resetPagination();
+      } else {
+        // No more places, update current params and start again from 0
+        const params = this.paramsList.shift();
+        if (typeof params !== 'undefined') {
+          console.log('Switching to params', params);
+          this.request.params = params;
+          this.resetPagination();
+        }
       }
     } else {
       // We do not know how many pages there are, so we just increment it
@@ -154,6 +167,12 @@ class ArticCrawler extends BaseCrawler {
     await this.writeRecord(record);
 
     return Promise.resolve(record);
+  }
+
+  resetPagination() {
+    this.currentOffset = 0;
+    this.currentPage = this.startPage;
+    this.totalPages = this.startPage + 1;
   }
 }
 
