@@ -8,8 +8,10 @@ class MfaBostonCrawler extends BaseCrawler {
   constructor(argv) {
     super(argv);
 
-    this.request.url =
-      'https://collections.mfa.org/search/Objects/classifications%3ATextiles%3BimageExistence%3Atrue%3BcollectionTerms%3AEurope%2CTextiles%20and%20Fashion%20Arts/*/list';
+    this.urlsList = [
+      'https://collections.mfa.org/search/Objects/classifications%3ATextiles%3BimageExistence%3Atrue%3BcollectionTerms%3AEurope%2CTextiles%20and%20Fashion%20Arts/*/list',
+      'https://collections.mfa.org/search/Objects/*/design%20weaving/list?filter=allClassifications%3AWatercolors%3BimageExistence%3Atrue',
+    ];
     this.paging.page = 'page';
     this.limit = 12;
 
@@ -17,6 +19,11 @@ class MfaBostonCrawler extends BaseCrawler {
     // (see: https://github.com/silknow/crawler/issues/10)
     this.axios.defaults.httpAgent = false;
     this.axios.defaults.httpsAgent = false;
+  }
+
+  async start() {
+    this.request.url = this.urlsList.shift();
+    return super.start();
   }
 
   async onSearchResult(result) {
@@ -42,6 +49,15 @@ class MfaBostonCrawler extends BaseCrawler {
     }
 
     this.currentOffset += $('#tlistview .list-item').length;
+
+    if ($('#tlistview .list-item').length < this.limit) {
+      this.request.url = this.urlsList.shift();
+      if (typeof this.request.url !== 'undefined') {
+        this.currentOffset = 0;
+        this.currentPage = this.startPage;
+        this.totalPages = this.startPage;
+      }
+    }
 
     return Promise.resolve();
   }
