@@ -196,7 +196,7 @@ class ImatexCrawler extends BaseCrawler {
     $('#tr_entorn_taulaBiblio tr:not(.titols) td').each((i, td) => {
       const value = $(td).text().trim();
       if (value.length > 0) {
-        record.bibliography.push(value);
+        record.addField('bibliography', value);
       }
     });
 
@@ -204,7 +204,7 @@ class ImatexCrawler extends BaseCrawler {
     $('#tr_entorn_taulaExpos tr:not(.titols) td').each((i, td) => {
       const value = $(td).text().trim();
       if (value.length > 0) {
-        record.expositions.push(value);
+        record.addField('expositions', value);
       }
     });
 
