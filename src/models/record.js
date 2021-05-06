@@ -11,8 +11,16 @@ class Record {
   }
 
   addField(label, value) {
+    if (
+      typeof value === 'undefined' ||
+      value === null ||
+      (typeof value === 'string' && value.length === 0) ||
+      (Array.isArray(value) && value.length === 0)
+    ) {
+      return;
+    }
     const field = this.getFieldByLabel(label);
-    if (!field) {
+    if (typeof field === 'undefined') {
       this.fields.push({
         label,
         [Array.isArray(value) ? 'values' : 'value']: value,
