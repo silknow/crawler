@@ -10,7 +10,7 @@ class LouvreCrawler extends BaseCrawler {
     super(argv);
 
     this.request.url =
-      'https://collections.louvre.fr/recherche?collection%5B0%5D=5&material%5B0%5D=soie&datingStartYear=1400&datingEndYear=1900&typology%5B0%5D=4';
+      'https://collections.louvre.fr/recherche?datingStartYear=1400&datingEndYear=1900&collection%5B0%5D=5&typology%5B0%5D=5&material%5B0%5D=soie';
     this.request.method = 'get';
     this.paging.page = 'page';
     this.paging.limit = 'limit';
@@ -76,8 +76,17 @@ class LouvreCrawler extends BaseCrawler {
     record.addField('mnr', this.parseText($('.notice__mnr').text()));
     record.addField('place', this.parseText($('.notice__place ').text()));
 
+    let isCarouselText = false;
     $('.notice__fullcartel__group').each((i, row) => {
-      const label = $(row).find('.part__label').text().trim();
+      let label = $(row).find('.part__label').text().trim();
+      if (label.length === 0) {
+        label = $(row)
+          .parents('.notice__fullcartel__part--closing')
+          .find('.part__title')
+          .text()
+          .trim();
+        isCarouselText = true;
+      }
       if (label.length === 0) return;
 
       const values = [];
@@ -91,8 +100,14 @@ class LouvreCrawler extends BaseCrawler {
         .find('.part__content')
         .contents()
         .each((j, elem) => {
+          let text = null;
           if (elem.type === 'text') {
-            values.push(...this.parseText(elem.data).filter((x) => x !== '-'));
+            text = elem.data;
+          } else if (isCarouselText) {
+            text = $(elem).text();
+          }
+          if (text !== null) {
+            values.push(...this.parseText(text).filter((x) => x !== '-'));
           }
         });
 
