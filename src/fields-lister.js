@@ -76,10 +76,10 @@ module.exports = {
           if (value.length > 600) {
             value = `${value.substr(0, 600)}…`;
           }
-          output += `| ${field.label.replace('|', '&#124;')} | ${value.replace(
-            '|',
-            '&#124;'
-          )} | ${field.recordFile.replace('|', '&#124;')} |\n`;
+          output += `| ${field.label.replace(/\|/g, '\\|')} | ${value.replace(
+            /\|/g,
+            '\\|'
+          )} | ${field.recordFile.replace(/\|/g, '\\|')} |\n`;
         });
       } else {
         // json by default
