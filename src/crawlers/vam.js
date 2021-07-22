@@ -79,9 +79,7 @@ class VamCrawler extends BaseCrawler {
           ) {
             record.addField(
               key,
-              `${val.name ? val.name.text : ''}${
-                val.association ? ` ; ${val.association.text}` : ''
-              }${val.note ? ` ; ${val.note}` : ''}`
+              [val.name.text, val.association.text, val.note].join(' | ')
             );
           } else if (
             // Place fields
@@ -90,9 +88,7 @@ class VamCrawler extends BaseCrawler {
           ) {
             record.addField(
               key,
-              `${val.place ? val.place.text : ''}${
-                val.association ? ` ; ${val.association.text}` : ''
-              }${val.note ? ` ; ${val.note}` : ''}`
+              [val.place.text, val.association.text, val.note].join(' | ')
             );
           } else if (
             // Date fields
@@ -101,9 +97,15 @@ class VamCrawler extends BaseCrawler {
           ) {
             record.addField(
               key,
-              `${val.date ? val.date.text : ''}${
-                val.association ? ` ; ${val.association.text}` : ''
-              }${val.note ? ` ; ${val.note}` : ''}`
+              [val.date.text, val.association.text, val.note].join(' | ')
+            );
+          } else if (
+            // Bibliography fields
+            typeof val.reference !== 'undefined'
+          ) {
+            record.addField(
+              key,
+              [val.free, val.reference.text, val.details].join(' | ')
             );
           }
         });
