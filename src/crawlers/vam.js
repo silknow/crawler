@@ -49,7 +49,10 @@ class VamCrawler extends BaseCrawler {
       return Promise.reject(err);
     }
 
-    const record = new Record(recordNumber, recordUrl);
+    const record = new Record(
+      recordNumber,
+      `https://collections.vam.ac.uk/item/${recordNumber}`
+    );
 
     // Map the output to a normalized structure for the converter
     const fields = response.data.record;
