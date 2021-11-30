@@ -7,18 +7,23 @@ class VamCrawler extends BaseCrawler {
   constructor(argv) {
     super(argv);
 
-    this.request.url =
-      'https://api.vam.ac.uk/v2/objects/search?page_size=100&images_exist=true&year_made_from=1400&year_made_to=1900&id_collection=THES48601&id_technique=AAT53642&id_material=AAT243428';
+    this.urlsList = [
+      'https://api.vam.ac.uk/v2/objects/search?page_size=100&images_exist=true&year_made_from=1400&year_made_to=1900&id_collection=THES48601&id_technique=AAT53642&id_material=AAT243428',
+      'https://api.vam.ac.uk/v2/objects/search?page_size=100&q=silk&images_exist=true&id_material=x30308&id_collection=THES48601&year_made_from=1400&year_made_to=1900',
+      'https://api.vam.ac.uk/v2/objects/search?page_size=100&q=textile%20design&images_exist=true&id_material=AAT243428&year_made_from=1400&year_made_to=1900&id_collection=THES48601',
+    ];
     this.paging.page = 'page';
     this.limit = 100;
     this.startPage = 1;
+  }
 
-    this.imagesQueue = [];
+  async start() {
+    this.request.url = this.urlsList.shift();
+    return super.start();
   }
 
   async onSearchResult(result) {
-    const resultCount = result.info.record_count;
-    this.totalPages = Math.ceil(resultCount / this.limit);
+    this.totalPages = result.info.pages;
 
     for (const recordData of result.records) {
       try {
@@ -29,6 +34,16 @@ class VamCrawler extends BaseCrawler {
     }
 
     this.currentOffset += result.records.length;
+
+    if (result.info.page >= this.totalPages) {
+      this.request.url = this.urlsList.shift();
+      if (typeof this.request.url !== 'undefined') {
+        debug('Next URL: %s', this.request.url);
+        this.currentOffset = 0;
+        this.currentPage = this.startPage;
+        this.totalPages = this.startPage + 1;
+      }
+    }
 
     return Promise.resolve();
   }
