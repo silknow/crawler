@@ -72,8 +72,56 @@ class MuseeStEtienneCrawler extends BaseCrawler {
     debug('Writing record %s', recordNumber);
     const record = new Record(recordNumber);
 
-    Object.entries(recordData).forEach(([key, value]) => {
-      record.addField(key, value);
+    const duplicateFields = {};
+    Object.entries(recordData).forEach(([key]) => {
+      if (key.indexOf('_') > -1) return;
+
+      // E.g., "Autre numéro_2"
+      let i = 1;
+      // eslint-disable-next-line no-plusplus
+      while (i++) {
+        // console.log('i=', i);
+        const nextKey = `${key}_${i}`;
+        if (!Object.keys(recordData).includes(nextKey)) {
+          break;
+        }
+
+        // E.g., "Fonction / Rôle_2_2"
+        let j = 1;
+        // eslint-disable-next-line no-plusplus
+        while (j++) {
+          const nextNextKey = `${key}_${i}_${j}`;
+          if (!Object.keys(recordData).includes(nextNextKey)) {
+            break;
+          }
+          const nextNextValue = recordData[nextNextKey].trim();
+          if (nextNextValue.length > 0) {
+            if (!Array.isArray(duplicateFields[key])) {
+              duplicateFields[key] = [];
+            }
+            if (!duplicateFields[key].includes(nextNextValue)) {
+              duplicateFields[key].push(nextNextValue);
+            }
+          }
+        }
+
+        const nextValue = recordData[nextKey];
+        if (!Array.isArray(duplicateFields[key])) {
+          duplicateFields[key] = [];
+        }
+        if (!duplicateFields[key].includes(nextValue)) {
+          duplicateFields[key].push(nextValue);
+        }
+      }
+    });
+
+    Object.entries(duplicateFields).forEach(([key, values]) => {
+      values
+        .map((value) => value.trim())
+        .filter((value) => value)
+        .forEach((value) => {
+          record.addField(key, value);
+        });
     });
 
     let i = 0;
@@ -95,7 +143,6 @@ class MuseeStEtienneCrawler extends BaseCrawler {
         const imageLicense = recordData[`Z${i}C${j}_Z1C1_Mention obligatoire`];
 
         if (typeof imageUrl === 'string' && imageUrl.length > 0) {
-          console.log('add image', imageUrl);
           record.addImage({
             id: imageId,
             url: `file://${path.join(
